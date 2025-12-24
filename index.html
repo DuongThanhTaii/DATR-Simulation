@@ -1,0 +1,905 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DATR - Domain Adaptive Detection Transformer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                    colors: {
+                        primary: { 50: '#f8fafc', 100: '#f1f5f9', 200: '#e2e8f0', 300: '#cbd5e1', 400: '#94a3b8', 500: '#64748b', 600: '#475569', 700: '#334155', 800: '#1e293b', 900: '#0f172a' },
+                        accent: { 400: '#fbbf24', 500: '#f59e0b', 600: '#d97706' }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .code-block {
+            background: #1e1e2e;
+            color: #cdd6f4;
+        }
+
+        .code-block pre {
+            margin: 0;
+            white-space: pre-wrap;
+            font-size: 0.8rem;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.4s ease-out;
+        }
+    </style>
+</head>
+
+<body class="bg-stone-50 text-primary-800 font-sans leading-relaxed">
+    <div class="max-w-5xl mx-auto px-4 py-8 md:px-6">
+        <!-- Header -->
+        <header class="bg-white border border-stone-200 rounded-xl p-8 mb-8 shadow-sm">
+            <h1 class="text-3xl md:text-4xl font-bold text-primary-800 mb-2">DATR</h1>
+            <p class="text-lg text-primary-500">Domain Adaptive Detection Transformer – Phát hiện vật thể thông minh qua
+                các môi trường khác nhau</p>
+        </header>
+
+        <!-- Section: Vấn đề -->
+        <section class="bg-white border border-stone-200 rounded-xl p-6 md:p-8 mb-6 shadow-sm">
+            <h2 class="text-xl font-semibold text-primary-700 mb-4 pb-2 border-b-2 border-accent-500">Vấn đề cần giải
+                quyết</h2>
+            <div class="flex flex-col md:flex-row items-center justify-center gap-6 my-6">
+                <div
+                    class="flex-1 bg-gradient-to-br from-primary-700 to-primary-800 text-white p-5 rounded-lg text-center min-w-[180px]">
+                    <h3 class="font-semibold mb-1">Domain Nguồn</h3>
+                    <p class="text-sm opacity-90">Dữ liệu huấn luyện<br>(Ví dụ: Ảnh ban ngày)</p>
+                </div>
+                <div class="text-3xl text-accent-500 font-bold">→</div>
+                <div
+                    class="flex-1 bg-gradient-to-br from-rose-500 to-rose-600 text-white p-5 rounded-lg text-center min-w-[180px]">
+                    <h3 class="font-semibold mb-1">Domain Đích</h3>
+                    <p class="text-sm opacity-90">Dữ liệu thực tế<br>(Ví dụ: Ảnh sương mù)</p>
+                </div>
+            </div>
+            <div class="bg-amber-50 border-l-4 border-accent-500 p-4 rounded-r-lg">
+                <strong class="text-accent-600">Ý tưởng:</strong> Một mô hình AI được huấn luyện trên ảnh ban ngày
+                thường hoạt động kém khi áp dụng vào ảnh sương mù. DATR giúp khắc phục vấn đề này!
+            </div>
+        </section>
+
+        <!-- Section: Kiến trúc -->
+        <section class="bg-white border border-stone-200 rounded-xl p-6 md:p-8 mb-6 shadow-sm">
+            <h2 class="text-xl font-semibold text-primary-700 mb-4 pb-2 border-b-2 border-accent-500">Kiến Trúc DATR
+            </h2>
+            <div class="space-y-3">
+                <div class="flex items-start gap-4 p-4 bg-stone-50 rounded-lg border-l-4 border-primary-600"><span
+                        class="text-xl">1.</span>
+                    <div><strong>Đầu vào</strong>
+                        <p class="text-sm text-primary-500">Cặp ảnh từ domain nguồn và domain đích</p>
+                    </div>
+                </div>
+                <div class="flex items-start gap-4 p-4 bg-stone-50 rounded-lg border-l-4 border-primary-600"><span
+                        class="text-xl">2.</span>
+                    <div><strong>Backbone (ResNet-50)</strong>
+                        <p class="text-sm text-primary-500">Trích xuất đặc trưng cơ bản từ ảnh</p>
+                    </div>
+                </div>
+                <div class="flex items-start gap-4 p-4 bg-stone-50 rounded-lg border-l-4 border-primary-600"><span
+                        class="text-xl">3.</span>
+                    <div><strong>Transformer Encoder</strong>
+                        <p class="text-sm text-primary-500">Tăng cường đặc trưng bằng self-attention</p>
+                    </div>
+                </div>
+                <div class="flex items-start gap-4 p-4 bg-stone-50 rounded-lg border-l-4 border-primary-600"><span
+                        class="text-xl">4.</span>
+                    <div><strong>Transformer Decoder + Object Queries</strong>
+                        <p class="text-sm text-primary-500">Định vị vật thể qua cross-attention</p>
+                    </div>
+                </div>
+                <div class="flex items-start gap-4 p-4 bg-purple-50 rounded-lg border-l-4 border-purple-500"><span
+                        class="text-xl">5.</span>
+                    <div><strong class="text-purple-700">CPA Module</strong>
+                        <p class="text-sm text-primary-500">Căn chỉnh prototypes theo từng class</p>
+                    </div>
+                </div>
+                <div class="flex items-start gap-4 p-4 bg-cyan-50 rounded-lg border-l-4 border-cyan-500"><span
+                        class="text-xl">6.</span>
+                    <div><strong class="text-cyan-700">DAS Scheme</strong>
+                        <p class="text-sm text-primary-500">Contrastive learning trên toàn dataset</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section: CPA Module -->
+        <section class="bg-white border border-stone-200 rounded-xl p-6 md:p-8 mb-6 shadow-sm">
+            <h2 class="text-xl font-semibold text-primary-700 mb-4 pb-2 border-b-2 border-accent-500">CPA Module -
+                Class-wise Prototypes Alignment</h2>
+            <div class="bg-purple-50 border-l-4 border-purple-500 p-4 rounded-r-lg mb-4">
+                <strong>Mục tiêu:</strong> Căn chỉnh đặc trưng theo từng loại vật thể, không chung chung cho cả ảnh
+            </div>
+            <div class="mb-4">
+                <div class="flex gap-2 mb-3">
+                    <button onclick="switchTab(event, 'tab1')"
+                        class="tab-btn px-4 py-2 rounded-lg text-sm font-medium bg-primary-700 text-white">Bước 1:
+                        Prototypes</button>
+                    <button onclick="switchTab(event, 'tab2')"
+                        class="tab-btn px-4 py-2 rounded-lg text-sm font-medium bg-stone-300 text-primary-700">Bước 2:
+                        Adversarial</button>
+                </div>
+                <div id="tab1" class="tab-content bg-stone-50 p-4 rounded-lg">
+                    <p class="mb-3">Gom nhóm object queries theo class → Tính trung bình để tạo prototype</p>
+                    <div class="bg-white p-4 rounded-lg border text-center">
+                        \[P_c = \frac{1}{N_c} \sum_{i: \text{class}(q_i) = c} q_i\]
+                    </div>
+                </div>
+                <div id="tab2" class="tab-content hidden bg-stone-50 p-4 rounded-lg">
+                    <p class="mb-3">Discriminator cố đoán domain → GRL đảo gradient để buộc prototypes giống nhau</p>
+                    <div class="bg-white p-4 rounded-lg border text-center">
+                        \[\mathcal{L}_{adv} = \text{BCE}(D(\text{GRL}(P)), y_{domain})\]
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section: DAS Scheme -->
+        <section class="bg-white border border-stone-200 rounded-xl p-6 md:p-8 mb-6 shadow-sm">
+            <h2 class="text-xl font-semibold text-primary-700 mb-4 pb-2 border-b-2 border-accent-500">DAS Scheme -
+                Dataset-level Alignment</h2>
+            <div class="bg-cyan-50 border-l-4 border-cyan-500 p-4 rounded-r-lg mb-4">
+                <strong>Mục tiêu:</strong> Học từ toàn bộ dataset, không chỉ từng batch
+            </div>
+            <div class="grid md:grid-cols-2 gap-4">
+                <div class="bg-stone-50 p-4 rounded-lg">
+                    <h4 class="font-medium mb-2">1. Memory Module</h4>
+                    <p class="text-sm mb-3">Lưu trữ và cập nhật prototypes qua các batch (Moving Average)</p>
+                    <div class="bg-white p-3 rounded-lg border text-center text-sm">
+                        \[\tilde{P}_c^{(t)} = \frac{n_c \cdot P_c + \tilde{n}_c \cdot \tilde{P}_c^{(t-1)}}{n_c +
+                        \tilde{n}_c}\]
+                    </div>
+                </div>
+                <div class="bg-stone-50 p-4 rounded-lg">
+                    <h4 class="font-medium mb-2">2. Contrastive Learning</h4>
+                    <p class="text-sm mb-3">Kéo gần cùng class, đẩy xa khác class (InfoNCE Loss)</p>
+                    <div class="bg-white p-3 rounded-lg border text-center text-sm">
+                        \[\mathcal{L}_{con} = -\log \frac{\exp(P_c \cdot \tilde{P}_c / \tau)}{\sum_{j=1}^{C} \exp(P_c
+                        \cdot \tilde{P}_j / \tau)}\]
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section: Self-Training -->
+        <section class="bg-white border border-stone-200 rounded-xl p-6 md:p-8 mb-6 shadow-sm">
+            <h2 class="text-xl font-semibold text-primary-700 mb-4 pb-2 border-b-2 border-accent-500">Mean-Teacher
+                Self-Training</h2>
+            <div class="flex flex-col md:flex-row gap-4 mb-6">
+                <div id="stage-1"
+                    class="stage flex-1 p-4 rounded-lg text-center bg-primary-700 text-white transition-all">
+                    <strong>Stage 1: Burn-In</strong>
+                    <p class="text-sm opacity-90">36 epochs – Chỉ train Student</p>
+                </div>
+                <div id="stage-2"
+                    class="stage flex-1 p-4 rounded-lg text-center bg-stone-200 text-primary-700 transition-all">
+                    <strong>Stage 2: Mutual Learning</strong>
+                    <p class="text-sm">10 epochs – Teacher + Student</p>
+                </div>
+            </div>
+            <div class="space-y-3">
+                <div class="flex items-start gap-3 p-3 bg-stone-50 rounded-lg border-l-4 border-green-500"><strong
+                        class="min-w-[120px]">Student Model</strong><span class="text-sm text-primary-500">Học từ dữ
+                        liệu có nhãn (source) + pseudo-labels (target)</span></div>
+                <div class="flex items-start gap-3 p-3 bg-stone-50 rounded-lg border-l-4 border-blue-500"><strong
+                        class="min-w-[120px]">Teacher Model</strong><span class="text-sm text-primary-500">Cập nhật từ
+                        Student qua EMA: \(\theta_{teacher} \leftarrow \alpha \cdot \theta_{teacher} + (1-\alpha) \cdot
+                        \theta_{student}\)</span>
+                </div>
+                <div class="flex items-start gap-3 p-3 bg-stone-50 rounded-lg border-l-4 border-orange-500"><strong
+                        class="min-w-[120px]">Pseudo-labels</strong><span class="text-sm text-primary-500">Teacher tạo
+                        nhãn cho ảnh target (không có nhãn thật)</span></div>
+            </div>
+        </section>
+
+        <!-- Section: Loss Functions -->
+        <section class="bg-white border border-stone-200 rounded-xl p-6 md:p-8 mb-6 shadow-sm">
+            <h2 class="text-xl font-semibold text-primary-700 mb-4 pb-2 border-b-2 border-accent-500">Hàm Loss Tổng Hợp
+            </h2>
+            <div class="grid md:grid-cols-2 gap-4">
+                <div class="bg-stone-50 p-4 rounded-lg">
+                    <h3 class="font-medium mb-3">Stage 1 - Burn-In:</h3>
+                    <div class="bg-white p-4 rounded-lg border text-center">
+                        \[\mathcal{L} = \mathcal{L}_{det}(P_{src}, Y_{src}) + \lambda_a \mathcal{L}_{adv} + \lambda_c
+                        \mathcal{L}_{con}\]
+                    </div>
+                </div>
+                <div class="bg-stone-50 p-4 rounded-lg">
+                    <h3 class="font-medium mb-3">Stage 2 - Mutual Learning:</h3>
+                    <div class="bg-white p-4 rounded-lg border text-center">
+                        \[\mathcal{L} = \mathcal{L}_{det} + \lambda_{unsup} \mathcal{L}_{det}^{tgt} + \lambda_a
+                        \mathcal{L}_{adv} + \lambda_c \mathcal{L}_{con}\]
+                    </div>
+                </div>
+            </div>
+            <div class="mt-4 bg-amber-50 border border-amber-200 p-4 rounded-lg">
+                <p class="text-sm mb-2"><strong>Giải thích:</strong></p>
+                <ul class="text-sm space-y-1">
+                    <li>\(\mathcal{L}_{det}\) = Loss phát hiện (classification + bbox + GIoU)</li>
+                    <li>\(\mathcal{L}_{adv}\) = Loss adversarial từ CPA module</li>
+                    <li>\(\mathcal{L}_{con}\) = Loss contrastive từ DAS scheme</li>
+                    <li>\(\lambda_a = \lambda_c = 0.1\), \(\lambda_{unsup} = 1.0\)</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- Section: Kết quả -->
+        <section class="bg-white border border-stone-200 rounded-xl p-6 md:p-8 mb-6 shadow-sm">
+            <h2 class="text-xl font-semibold text-primary-700 mb-4 pb-2 border-b-2 border-accent-500">Kết Quả Thực
+                Nghiệm</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                <div class="bg-primary-800 text-white p-5 rounded-lg text-center">
+                    <h3 class="text-sm font-medium opacity-80 mb-1">Weather Adaptation</h3>
+                    <p class="text-xs opacity-70">Cityscapes → Foggy</p>
+                    <p class="text-3xl font-bold my-2">52.8%</p>
+                    <p class="text-xs opacity-70">mAP (+1.6% vs SOTA)</p>
+                </div>
+                <div class="bg-primary-700 text-white p-5 rounded-lg text-center">
+                    <h3 class="text-sm font-medium opacity-80 mb-1">Synthetic-to-Real</h3>
+                    <p class="text-xs opacity-70">Sim10k → Cityscapes</p>
+                    <p class="text-3xl font-bold my-2">66.3%</p>
+                    <p class="text-xs opacity-70">mAP (+4.3% vs SOTA)</p>
+                </div>
+                <div class="bg-primary-600 text-white p-5 rounded-lg text-center">
+                    <h3 class="text-sm font-medium opacity-80 mb-1">Scene Adaptation</h3>
+                    <p class="text-xs opacity-70">Cityscapes → BDD100k</p>
+                    <p class="text-3xl font-bold my-2">41.9%</p>
+                    <p class="text-xs opacity-70">mAP (+8.2% vs SOTA)</p>
+                </div>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm border-collapse">
+                    <thead>
+                        <tr class="bg-primary-700 text-white">
+                            <th class="p-3 text-left">Phương pháp</th>
+                            <th class="p-3 text-left">Cityscapes → Foggy</th>
+                            <th class="p-3 text-left">Sim10k → Cityscapes</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="border-b border-stone-200 hover:bg-stone-50">
+                            <td class="p-3">Source-only DINO</td>
+                            <td class="p-3">35.6%</td>
+                            <td class="p-3">52.6%</td>
+                        </tr>
+                        <tr class="border-b border-stone-200 hover:bg-stone-50">
+                            <td class="p-3">+ Backbone Align</td>
+                            <td class="p-3">42.5%</td>
+                            <td class="p-3">—</td>
+                        </tr>
+                        <tr class="border-b border-stone-200 hover:bg-stone-50">
+                            <td class="p-3">+ CPA</td>
+                            <td class="p-3">46.9%</td>
+                            <td class="p-3">—</td>
+                        </tr>
+                        <tr class="border-b border-stone-200 hover:bg-stone-50">
+                            <td class="p-3">+ DAS</td>
+                            <td class="p-3">48.7%</td>
+                            <td class="p-3">—</td>
+                        </tr>
+                        <tr class="bg-green-50 font-semibold">
+                            <td class="p-3">DATR (Full)</td>
+                            <td class="p-3 text-green-700">52.8%</td>
+                            <td class="p-3 text-green-700">66.3%</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Section: Điểm mạnh -->
+        <section class="bg-white border border-stone-200 rounded-xl p-6 md:p-8 mb-6 shadow-sm">
+            <h2 class="text-xl font-semibold text-primary-700 mb-4 pb-2 border-b-2 border-accent-500">Điểm Mạnh Của DATR
+            </h2>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div
+                    class="border border-stone-200 p-4 rounded-lg text-center hover:border-accent-500 hover:shadow-md transition-all">
+                    <div class="text-2xl mb-2">🎯</div>
+                    <h3 class="font-medium text-sm">Class-aware</h3>
+                    <p class="text-xs text-primary-500 mt-1">Căn chỉnh theo từng loại vật thể</p>
+                </div>
+                <div
+                    class="border border-stone-200 p-4 rounded-lg text-center hover:border-accent-500 hover:shadow-md transition-all">
+                    <div class="text-2xl mb-2">🌍</div>
+                    <h3 class="font-medium text-sm">Dataset-level</h3>
+                    <p class="text-xs text-primary-500 mt-1">Học từ toàn bộ dataset</p>
+                </div>
+                <div
+                    class="border border-stone-200 p-4 rounded-lg text-center hover:border-accent-500 hover:shadow-md transition-all">
+                    <div class="text-2xl mb-2">⚡</div>
+                    <h3 class="font-medium text-sm">Efficient</h3>
+                    <p class="text-xs text-primary-500 mt-1">Tính toán batch nhanh</p>
+                </div>
+                <div
+                    class="border border-stone-200 p-4 rounded-lg text-center hover:border-accent-500 hover:shadow-md transition-all">
+                    <div class="text-2xl mb-2">👨‍🏫</div>
+                    <h3 class="font-medium text-sm">Self-Training</h3>
+                    <p class="text-xs text-primary-500 mt-1">Mean-Teacher pseudo-labels</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section: Mô phỏng -->
+        <section class="bg-white border border-stone-200 rounded-xl p-6 md:p-8 mb-6 shadow-sm">
+            <h2 class="text-xl font-semibold text-primary-700 mb-4 pb-2 border-b-2 border-accent-500">Mô Phỏng DATR
+                Step-by-Step</h2>
+            <div class="bg-amber-50 border-l-4 border-accent-500 p-4 rounded-r-lg mb-4">
+                <strong>Mục tiêu:</strong> Bạn sẽ trực tiếp điều khiển từng bước xử lý của DATR!
+            </div>
+
+            <!-- Control Panel -->
+            <div class="bg-primary-900 text-white p-5 rounded-lg mb-4">
+                <h3 class="text-green-400 font-medium mb-3">Bảng Điều Khiển</h3>
+                <div class="flex flex-wrap gap-2 mb-4">
+                    <button class="px-4 py-2 bg-green-600 hover:bg-green-700 rounded-md text-sm transition-colors"
+                        onclick="loadImages()">1. Load Images</button>
+                    <button
+                        class="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-md text-sm transition-colors disabled:opacity-50"
+                        id="btn-extract" disabled onclick="extractFeatures()">2. Extract Features</button>
+                    <button
+                        class="px-4 py-2 bg-orange-500 hover:bg-orange-600 rounded-md text-sm transition-colors disabled:opacity-50"
+                        id="btn-encoder" disabled onclick="runEncoder()">3. Run Encoder</button>
+                    <button
+                        class="px-4 py-2 bg-pink-600 hover:bg-pink-700 rounded-md text-sm transition-colors disabled:opacity-50"
+                        id="btn-decoder" disabled onclick="runDecoder()">4. Run Decoder</button>
+                    <button
+                        class="px-4 py-2 bg-purple-600 hover:bg-purple-700 rounded-md text-sm transition-colors disabled:opacity-50"
+                        id="btn-cpa" disabled onclick="runCPA()">5. Run CPA</button>
+                    <button
+                        class="px-4 py-2 bg-cyan-600 hover:bg-cyan-700 rounded-md text-sm transition-colors disabled:opacity-50"
+                        id="btn-das" disabled onclick="runDAS()">6. Run DAS</button>
+                    <button
+                        class="px-4 py-2 bg-red-600 hover:bg-red-700 rounded-md text-sm transition-colors disabled:opacity-50"
+                        id="btn-loss" disabled onclick="computeLoss()">7. Compute Loss</button>
+                    <button class="px-4 py-2 bg-stone-600 hover:bg-stone-700 rounded-md text-sm transition-colors"
+                        onclick="resetSimulation()">Reset</button>
+                </div>
+                <div id="status-display"
+                    class="bg-primary-800 p-4 rounded-lg font-mono text-sm max-h-48 overflow-y-auto">
+                    <div class="text-green-400">>>> System Ready. Click "Load Images" to start...</div>
+                </div>
+            </div>
+
+            <!-- Visualization Stages -->
+            <div class="space-y-4">
+                <!-- Stage 1: Input -->
+                <div id="stage-input" class="hidden fade-in bg-stone-50 p-5 rounded-lg border-l-4 border-green-500">
+                    <h4 class="font-semibold text-green-700 mb-3">Stage 1: Input Images</h4>
+                    <div class="flex flex-wrap gap-4 justify-center mb-4">
+                        <div class="bg-primary-700 text-white p-4 rounded-lg text-center min-w-[180px]">
+                            <p class="font-medium">Source Domain</p>
+                            <p class="text-xs opacity-80">Cityscapes (Clear)</p>
+                            <p class="text-xs bg-black/20 rounded px-2 py-1 mt-2 font-mono">[1, 3, 800, 1333]</p>
+                        </div>
+                        <div class="bg-rose-500 text-white p-4 rounded-lg text-center min-w-[180px]">
+                            <p class="font-medium">Target Domain</p>
+                            <p class="text-xs opacity-80">Foggy Cityscapes</p>
+                            <p class="text-xs bg-black/20 rounded px-2 py-1 mt-2 font-mono">[1, 3, 800, 1333]</p>
+                        </div>
+                    </div>
+                    <div class="code-block p-3 rounded-lg text-xs">
+                        <pre># Code tương ứng:
+images_src = load_batch(source_domain)  # Shape: [B, 3, H, W]
+images_tgt = load_batch(target_domain)  # Shape: [B, 3, H, W]</pre>
+                    </div>
+                </div>
+
+                <!-- Stage 2: Features -->
+                <div id="stage-features" class="hidden fade-in bg-stone-50 p-5 rounded-lg border-l-4 border-blue-500">
+                    <h4 class="font-semibold text-blue-700 mb-3">Stage 2: Backbone Feature Extraction (ResNet-50)</h4>
+                    <div class="flex flex-wrap items-center justify-center gap-3 mb-4">
+                        <div class="bg-white border-2 border-primary-300 p-3 rounded-lg text-center">
+                            <strong>Input</strong>
+                            <p class="text-xs font-mono">[B, 3, 800, 1333]</p>
+                        </div>
+                        <span class="text-2xl text-primary-400">→</span>
+                        <div class="bg-blue-100 border-2 border-blue-300 p-3 rounded-lg text-center">
+                            <strong>Conv Layers</strong>
+                        </div>
+                        <span class="text-2xl text-primary-400">→</span>
+                        <div class="bg-white border-2 border-primary-300 p-3 rounded-lg text-center">
+                            <strong>Features</strong>
+                            <p class="text-xs font-mono">[B, 2048, 25, 42]</p>
+                        </div>
+                    </div>
+                    <div class="code-block p-3 rounded-lg text-xs">
+                        <pre># Code tương ứng:
+backbone = ResNet50(pretrained=True)
+features_src = backbone(images_src)  # Shape: [B, 2048, H/32, W/32]
+features_tgt = backbone(images_tgt)
+print(f"Extracted features shape: {features_src.shape}")</pre>
+                    </div>
+                </div>
+
+                <!-- Stage 3: Encoder -->
+                <div id="stage-encoder" class="hidden fade-in bg-stone-50 p-5 rounded-lg border-l-4 border-orange-500">
+                    <h4 class="font-semibold text-orange-700 mb-3">Stage 3: Transformer Encoder</h4>
+                    <div id="attention-grid" class="grid grid-cols-8 gap-1 max-w-xs mx-auto mb-4"></div>
+                    <div class="code-block p-3 rounded-lg text-xs mb-3">
+                        <pre># Code tương ứng:
+encoder = TransformerEncoder(d_model=256, nhead=8, num_layers=6)
+src_flatten = features_src.flatten(2).permute(2, 0, 1)  # [HW, B, C]
+pos_embed = PositionalEncoding2D(features_src)
+memory_src = encoder(src_flatten + pos_embed)  # Shape: [HW, B, 256]
+print(f"Encoder output shape: {memory_src.shape}")</pre>
+                    </div>
+                    <div class="bg-green-50 border-l-4 border-green-500 p-3 rounded-r text-sm">
+                        <strong>Encoder làm gì?</strong> Tăng cường features bằng self-attention, mỗi vị trí "nhìn thấy"
+                        toàn bộ ảnh
+                    </div>
+                </div>
+
+                <!-- Stage 4: Decoder -->
+                <div id="stage-decoder" class="hidden fade-in bg-stone-50 p-5 rounded-lg border-l-4 border-pink-500">
+                    <h4 class="font-semibold text-pink-700 mb-3">Stage 4: Transformer Decoder - Object Queries</h4>
+                    <div class="text-center my-4">
+                        <div class="inline-block p-4 bg-amber-50 border border-amber-200 rounded-lg">
+                            <strong>Object Queries</strong>
+                            <div id="queries-display" class="mt-2 flex flex-wrap gap-1 justify-center"></div>
+                        </div>
+                    </div>
+                    <div class="code-block p-3 rounded-lg text-xs mb-3">
+                        <pre># Code tương ứng:
+decoder = TransformerDecoder(d_model=256, nhead=8, num_layers=6)
+query_embed = nn.Embedding(300, 256)
+queries = query_embed.weight.unsqueeze(1).repeat(1, B, 1)  # [300, B, 256]
+hs_src = decoder(queries, memory_src)  # [6, 300, B, 256]
+output_src = hs_src[-1]  # [300, B, 256]
+
+# Prediction heads
+class_head = nn.Linear(256, num_classes)
+bbox_head = MLP(256, 256, 4, 3)
+logits_src = class_head(output_src)  # [300, B, num_classes]
+boxes_src = bbox_head(output_src).sigmoid()  # [300, B, 4]</pre>
+                    </div>
+                    <div id="predictions-display" class="mt-3"></div>
+                </div>
+
+                <!-- Stage 5: CPA -->
+                <div id="stage-cpa" class="hidden fade-in bg-stone-50 p-5 rounded-lg border-l-4 border-purple-500">
+                    <h4 class="font-semibold text-purple-700 mb-3">Stage 5: CPA Module - Class-wise Prototypes Alignment
+                    </h4>
+
+                    <div class="bg-purple-50 p-4 rounded-lg mb-4">
+                        <strong>Step 5.1: Extract Class-wise Prototypes</strong>
+                        <div id="prototypes-visual" class="mt-3"></div>
+                    </div>
+
+                    <div class="code-block p-3 rounded-lg text-xs mb-4">
+                        <pre># Code tương ứng:
+def extract_class_prototypes(output, logits):
+    pred_classes = logits.argmax(dim=-1)  # [N, B]
+    prototypes = []
+    for c in range(num_classes):
+        mask_c = (pred_classes == c).float()
+        prototype_c = (output * mask_c).sum(0) / (mask_c.sum() + 1e-6)
+        prototypes.append(prototype_c)
+    return torch.stack(prototypes)  # [C, 256]
+
+proto_src = extract_class_prototypes(output_src, logits_src)
+proto_tgt = extract_class_prototypes(output_tgt, logits_tgt)</pre>
+                    </div>
+
+                    <div class="bg-blue-50 p-4 rounded-lg mb-4">
+                        <strong>Step 5.2: Adversarial Learning</strong>
+                        <div class="flex justify-around items-center flex-wrap gap-4 mt-3">
+                            <div class="text-center">
+                                <div class="w-12 h-12 bg-blue-500 rounded-full mx-auto"></div>
+                                <p class="text-sm mt-1">Source Proto</p>
+                            </div>
+                            <span class="text-2xl">→</span>
+                            <div class="text-center bg-amber-100 p-3 rounded-lg">
+                                <strong>Discriminator</strong>
+                                <p class="text-xs">Source or Target?</p>
+                            </div>
+                            <span class="text-2xl">←</span>
+                            <div class="text-center">
+                                <div class="w-12 h-12 bg-red-500 rounded-full mx-auto"></div>
+                                <p class="text-sm mt-1">Target Proto</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="code-block p-3 rounded-lg text-xs mb-3">
+                        <pre># Adversarial Training with GRL:
+discriminator = DomainDiscriminator(in_dim=256)
+all_prototypes = torch.cat([proto_src, proto_tgt], dim=0)
+reversed_features = GradientReversalFunction.apply(all_prototypes, 0.1)
+domain_pred = discriminator(reversed_features)
+L_adv = F.binary_cross_entropy(domain_pred, domain_labels)</pre>
+                    </div>
+
+                    <div class="bg-green-50 border-l-4 border-green-500 p-3 rounded-r text-sm">
+                        <strong>CPA hoạt động:</strong> GRL đảo ngược gradient → buộc prototypes của 2 domain giống nhau
+                    </div>
+                </div>
+
+                <!-- Stage 6: DAS -->
+                <div id="stage-das" class="hidden fade-in bg-stone-50 p-5 rounded-lg border-l-4 border-cyan-500">
+                    <h4 class="font-semibold text-cyan-700 mb-3">Stage 6: DAS Scheme - Dataset-level Alignment</h4>
+
+                    <div class="bg-cyan-50 p-4 rounded-lg mb-4">
+                        <strong>Step 6.1: Memory Module</strong>
+                        <div id="memory-visual" class="mt-3"></div>
+                    </div>
+
+                    <div class="code-block p-3 rounded-lg text-xs mb-4">
+                        <pre># Memory Module - Dataset-level Prototypes:
+class MemoryModule:
+    def __init__(self, num_classes, feature_dim=256):
+        self.dataset_prototypes = torch.zeros(num_classes, feature_dim)
+        self.counts = torch.zeros(num_classes)
+    
+    def update(self, class_prototypes, class_counts):
+        for c in range(num_classes):
+            if class_counts[c] > 0:
+                # Moving average update
+                self.dataset_prototypes[c] = (
+                    class_prototypes[c] * class_counts[c] + 
+                    self.dataset_prototypes[c] * self.counts[c]
+                ) / (class_counts[c] + self.counts[c] + 1e-6)
+                self.counts[c] += class_counts[c]
+        return self.dataset_prototypes</pre>
+                    </div>
+
+                    <div class="bg-orange-50 p-4 rounded-lg mb-4">
+                        <strong>Step 6.2: Contrastive Learning</strong>
+                        <p class="text-sm my-2"><span class="text-green-600">✓ Kéo gần cùng class</span> | <span
+                                class="text-red-600">✗ Đẩy xa khác class</span></p>
+                        <div id="contrastive-matrix" class="overflow-x-auto"></div>
+                    </div>
+
+                    <div class="code-block p-3 rounded-lg text-xs mb-3">
+                        <pre># Contrastive Loss:
+def contrastive_loss(proto_src, proto_tgt, dataset_proto, temperature=0.07):
+    proto_norm = F.normalize(proto_src, dim=1)
+    dataset_norm = F.normalize(dataset_proto, dim=1)
+    loss = 0.0
+    for i in range(C):
+        pos = torch.exp(torch.dot(proto_norm[i], dataset_norm[i]) / temperature)
+        neg = torch.sum(torch.exp(torch.matmul(proto_norm, dataset_norm[i]) / temperature))
+        loss += -torch.log(pos / neg)
+    return loss / C</pre>
+                    </div>
+
+                    <div class="bg-green-50 border-l-4 border-green-500 p-3 rounded-r text-sm">
+                        <strong>DAS hoạt động:</strong> Memory module tích lũy prototypes → Contrastive learning căn
+                        chỉnh toàn dataset
+                    </div>
+                </div>
+
+                <!-- Stage 7: Loss -->
+                <div id="stage-loss" class="hidden fade-in bg-stone-50 p-5 rounded-lg border-l-4 border-red-500">
+                    <h4 class="font-semibold text-red-700 mb-3">Stage 7: Total Loss Computation</h4>
+                    <div id="loss-breakdown" class="mb-4"></div>
+
+                    <div class="code-block p-3 rounded-lg text-xs mb-3">
+                        <pre># Total Loss:
+def compute_total_loss(predictions, targets, proto_src, proto_tgt, dataset_proto):
+    # Detection Loss (DINO style)
+    L_det = F.cross_entropy(logits_src, gt_labels) + bbox_loss(boxes_src, gt_boxes)
+    
+    # Adversarial Loss (CPA)
+    L_adv = adversarial_loss(proto_src, proto_tgt)
+    
+    # Contrastive Loss (DAS)
+    L_contrast = contrastive_loss(proto_src, proto_tgt, dataset_proto)
+    
+    # Total: L = L_det + λ_a*L_adv + λ_c*L_contrast
+    L_total = L_det + 0.1 * L_adv + 0.1 * L_contrast
+    return L_total
+
+# Backward and optimize
+optimizer.zero_grad()
+L_total.backward()
+optimizer.step()
+
+# Update teacher with EMA (Stage 2 only)
+alpha = 0.999
+for p_t, p_s in zip(teacher.parameters(), student.parameters()):
+    p_t.data = alpha * p_t.data + (1 - alpha) * p_s.data</pre>
+                    </div>
+
+                    <div class="bg-green-50 border-l-4 border-green-500 p-3 rounded-r text-sm">
+                        <strong>Loss Components:</strong> L_det (detection) + λ_a×L_adv (CPA) + λ_c×L_contrast (DAS)
+                    </div>
+                </div>
+            </div>
+
+            <!-- Training Stats -->
+            <div class="bg-primary-800 text-white p-5 rounded-lg mt-4">
+                <h3 class="font-medium mb-3">Training Statistics</h3>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    <div class="bg-white/10 p-3 rounded text-center">
+                        <div class="text-2xl font-bold" id="stat-epoch">0</div>
+                        <div class="text-xs opacity-70">Epoch</div>
+                    </div>
+                    <div class="bg-white/10 p-3 rounded text-center">
+                        <div class="text-2xl font-bold" id="stat-loss">0.000</div>
+                        <div class="text-xs opacity-70">Total Loss</div>
+                    </div>
+                    <div class="bg-white/10 p-3 rounded text-center">
+                        <div class="text-2xl font-bold" id="stat-map">0.0%</div>
+                        <div class="text-xs opacity-70">mAP</div>
+                    </div>
+                    <div class="bg-white/10 p-3 rounded text-center">
+                        <div class="text-2xl font-bold" id="stat-samples">0</div>
+                        <div class="text-xs opacity-70">Samples</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section: Colab Guide -->
+        <section class="bg-white border border-stone-200 rounded-xl p-6 md:p-8 mb-6 shadow-sm">
+            <h2 class="text-xl font-semibold text-primary-700 mb-4 pb-2 border-b-2 border-accent-500">Quy trình training
+                trên Colab</h2>
+            <div class="space-y-2 text-sm">
+                <div class="flex gap-3 p-3 bg-stone-50 rounded"><span
+                        class="font-bold text-accent-600">1.</span><span>Chuẩn bị dữ liệu: Upload dataset lên Google
+                        Drive</span></div>
+                <div class="flex gap-3 p-3 bg-stone-50 rounded"><span
+                        class="font-bold text-accent-600">2.</span><span>Clone repo: <code
+                            class="bg-stone-200 px-1 rounded">git clone https://github.com/h751410234/DATR</code></span>
+                </div>
+                <div class="flex gap-3 p-3 bg-stone-50 rounded"><span
+                        class="font-bold text-accent-600">3.</span><span>Cấu hình đường dẫn trong notebook</span></div>
+                <div class="flex gap-3 p-3 bg-stone-50 rounded"><span
+                        class="font-bold text-accent-600">4.</span><span>Stage 1: <code
+                            class="bg-stone-200 px-1 rounded">sh scripts/DINO_train.sh</code> (36 epochs)</span></div>
+                <div class="flex gap-3 p-3 bg-stone-50 rounded"><span
+                        class="font-bold text-accent-600">5.</span><span>Stage 2: <code
+                            class="bg-stone-200 px-1 rounded">sh scripts/DINO_train_self_training.sh</code> (10
+                        epochs)</span></div>
+                <div class="flex gap-3 p-3 bg-stone-50 rounded"><span
+                        class="font-bold text-accent-600">6.</span><span>Đánh giá: <code
+                            class="bg-stone-200 px-1 rounded">sh scripts/DINO_eval.sh</code></span></div>
+            </div>
+            <div class="bg-amber-50 border border-amber-200 p-4 rounded-lg mt-4">
+                <strong>Hyperparameters:</strong>
+                <div class="mt-2 text-sm">
+                    \(\text{LR} = 2 \times 10^{-4}\) •
+                    \(\lambda_a = \lambda_c = 0.1\) •
+                    \(\lambda_{unsup} = 1.0\) •
+                    \(\alpha_{EMA} = 0.999\) •
+                    \(\text{Threshold} = 0.3\)
+                </div>
+            </div>
+        </section>
+
+        <!-- Section: Tổng kết -->
+        <section class="bg-white border border-stone-200 rounded-xl p-6 md:p-8 mb-6 shadow-sm">
+            <h2 class="text-xl font-semibold text-primary-700 mb-4 pb-2 border-b-2 border-accent-500">Tổng Kết</h2>
+            <div class="bg-teal-50 border-l-4 border-teal-500 p-4 rounded-r-lg mb-4">
+                <h3 class="font-semibold mb-2">DATR là gì?</h3>
+                <p class="text-sm">DATR là một detector thông minh có khả năng <strong>tự thích nghi</strong> khi chuyển
+                    từ môi trường huấn luyện sang môi trường thực tế khác biệt. Giống như một người biết lái xe ban
+                    ngày, DATR giúp họ nhanh chóng thích nghi với điều kiện lái xe ban đêm hoặc trong sương mù.</p>
+            </div>
+            <div class="grid md:grid-cols-3 gap-4">
+                <div class="bg-blue-50 p-4 rounded-lg"><strong class="text-blue-700">1. CPA Module</strong>
+                    <p class="text-sm mt-1">Căn chỉnh đặc trưng theo từng loại vật thể</p>
+                </div>
+                <div class="bg-purple-50 p-4 rounded-lg"><strong class="text-purple-700">2. DAS Scheme</strong>
+                    <p class="text-sm mt-1">Học từ toàn bộ dataset với contrastive learning</p>
+                </div>
+                <div class="bg-orange-50 p-4 rounded-lg"><strong class="text-orange-700">3. Self-Training</strong>
+                    <p class="text-sm mt-1">Tận dụng pseudo-labels từ Mean-Teacher</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="bg-primary-800 text-white p-6 rounded-xl text-center">
+            <h3 class="font-semibold mb-2">Tài Nguyên</h3>
+            <p class="text-sm opacity-80 mb-1"><strong>Paper:</strong> DATR: Unsupervised Domain Adaptive Detection
+                Transformer (arXiv 2024)</p>
+            <p class="text-sm opacity-80"><strong>Code:</strong> github.com/h751410234/DATR</p>
+        </footer>
+    </div>
+
+    <script>
+        let currentStep = 0;
+        let simulationData = { epoch: 0, totalLoss: 0, mAP: 0, samplesProcessed: 0 };
+
+        function addLog(msg, type = 'info') {
+            const display = document.getElementById('status-display');
+            const colors = { success: 'text-green-400', info: 'text-blue-300', warning: 'text-yellow-400', error: 'text-red-400' };
+            const time = new Date().toLocaleTimeString();
+            display.innerHTML += `<div class="${colors[type]}">[${time}] ${msg}</div>`;
+            display.scrollTop = display.scrollHeight;
+        }
+
+        function enableButton(id) { document.getElementById(id).disabled = false; }
+
+        function loadImages() {
+            addLog('>>> Loading image batch...', 'info');
+            setTimeout(() => {
+                addLog('✓ Loaded 2 images (source + target)', 'success');
+                document.getElementById('stage-input').classList.remove('hidden');
+                enableButton('btn-extract');
+            }, 500);
+        }
+
+        function extractFeatures() {
+            addLog('>>> Running ResNet-50 backbone...', 'info');
+            setTimeout(() => {
+                addLog('✓ Feature extraction completed [2, 2048, 25, 42]', 'success');
+                document.getElementById('stage-features').classList.remove('hidden');
+                enableButton('btn-encoder');
+            }, 800);
+        }
+
+        function runEncoder() {
+            addLog('>>> Running Transformer Encoder (6 layers)...', 'info');
+            const grid = document.getElementById('attention-grid');
+            grid.innerHTML = '';
+            for (let i = 0; i < 64; i++) {
+                const intensity = Math.random();
+                grid.innerHTML += `<div class="w-6 h-6 rounded" style="background:rgba(59,130,246,${intensity})"></div>`;
+            }
+            setTimeout(() => {
+                addLog('✓ Encoder completed - self-attention applied', 'success');
+                document.getElementById('stage-encoder').classList.remove('hidden');
+                enableButton('btn-decoder');
+            }, 1000);
+        }
+
+        function runDecoder() {
+            addLog('>>> Running Decoder with 300 object queries...', 'info');
+            const display = document.getElementById('queries-display');
+            const emojis = ['🚗', '🚶', '🚴', '🚌', '🏍️', '🚛'];
+            display.innerHTML = '';
+            for (let i = 0; i < 30; i++) {
+                const e = emojis[Math.floor(Math.random() * emojis.length)];
+                display.innerHTML += `<span class="text-lg">${e}</span>`;
+            }
+            setTimeout(() => {
+                addLog('✓ Decoder completed - predictions generated', 'success');
+                document.getElementById('predictions-display').innerHTML = `
+                    <div class="bg-white p-3 rounded border text-sm">
+                        <p><strong>Source:</strong> 5 cars, 7 persons detected (high confidence)</p>
+                        <p><strong>Target:</strong> 3 cars, 4 persons detected <span class="text-amber-600">(lower confidence - domain gap!)</span></p>
+                    </div>`;
+                document.getElementById('stage-decoder').classList.remove('hidden');
+                enableButton('btn-cpa');
+            }, 1200);
+        }
+
+        function runCPA() {
+            addLog('>>> Extracting class-wise prototypes...', 'info');
+            const classes = ['car', 'person', 'bike', 'bus', 'motor', 'truck'];
+            let html = '<div class="grid grid-cols-3 gap-2">';
+            classes.forEach(c => {
+                html += `<div class="bg-white border p-2 rounded text-center text-xs"><strong>${c}</strong><br>Src: ${Math.floor(Math.random() * 5) + 2} | Tgt: ${Math.floor(Math.random() * 4) + 1}</div>`;
+            });
+            html += '</div>';
+            document.getElementById('prototypes-visual').innerHTML = html;
+            setTimeout(() => {
+                addLog('✓ CPA: Adversarial loss = 0.452', 'success');
+                document.getElementById('stage-cpa').classList.remove('hidden');
+                enableButton('btn-das');
+            }, 1500);
+        }
+
+        function runDAS() {
+            addLog('>>> Updating memory module...', 'info');
+            document.getElementById('memory-visual').innerHTML = `
+                <div class="flex items-center justify-center gap-4 text-sm">
+                    <div class="bg-white border p-3 rounded text-center"><strong>Memory Bank</strong><br>${simulationData.samplesProcessed + 150} samples</div>
+                    <span class="text-xl">→</span>
+                    <div class="bg-white border p-3 rounded text-center"><strong>Dataset Prototypes</strong><br>[8, 256]</div>
+                </div>`;
+            setTimeout(() => {
+                const classes = ['car', 'person', 'bike', 'bus', 'motor', 'truck'];
+                let html = '<table class="w-full text-xs border-collapse"><tr><th class="border p-1"></th>';
+                classes.forEach(c => html += `<th class="border p-1">${c}</th>`);
+                html += '</tr>';
+                classes.forEach((r, i) => {
+                    html += `<tr><th class="border p-1">${r}</th>`;
+                    classes.forEach((c, j) => {
+                        const v = i === j ? (0.8 + Math.random() * 0.15).toFixed(2) : (0.1 + Math.random() * 0.2).toFixed(2);
+                        const bg = i === j ? 'bg-green-500 text-white' : 'bg-red-400 text-white';
+                        html += `<td class="border p-1 text-center ${bg}">${v}</td>`;
+                    });
+                    html += '</tr>';
+                });
+                html += '</table>';
+                document.getElementById('contrastive-matrix').innerHTML = html;
+                addLog('✓ DAS: Contrastive loss = 0.285', 'success');
+                document.getElementById('stage-das').classList.remove('hidden');
+                enableButton('btn-loss');
+            }, 1200);
+        }
+
+        function computeLoss() {
+            addLog('>>> Computing total loss...', 'info');
+            const L_det = (1 + Math.random() * 0.5).toFixed(4);
+            const L_adv = (0.3 + Math.random() * 0.2).toFixed(4);
+            const L_con = (0.2 + Math.random() * 0.15).toFixed(4);
+            const L_total = (parseFloat(L_det) + 0.1 * parseFloat(L_adv) + 0.1 * parseFloat(L_con)).toFixed(4);
+            setTimeout(() => {
+                document.getElementById('loss-breakdown').innerHTML = `
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 text-center">
+                        <div class="bg-blue-100 p-3 rounded"><div class="text-lg font-bold text-blue-700">${L_det}</div><div class="text-xs">L_det</div></div>
+                        <div class="bg-purple-100 p-3 rounded"><div class="text-lg font-bold text-purple-700">${(L_adv * 0.1).toFixed(4)}</div><div class="text-xs">L_adv×0.1</div></div>
+                        <div class="bg-cyan-100 p-3 rounded"><div class="text-lg font-bold text-cyan-700">${(L_con * 0.1).toFixed(4)}</div><div class="text-xs">L_con×0.1</div></div>
+                        <div class="bg-red-100 p-3 rounded"><div class="text-xl font-bold text-red-700">${L_total}</div><div class="text-xs">Total</div></div>
+                    </div>`;
+                document.getElementById('stage-loss').classList.remove('hidden');
+                simulationData.epoch = Math.floor(simulationData.samplesProcessed / 100) + 1;
+                simulationData.totalLoss = parseFloat(L_total);
+                simulationData.mAP = Math.min(52.8, 35.6 + simulationData.epoch * 0.8);
+                simulationData.samplesProcessed += 2;
+                updateStats();
+                addLog('✓ Training iteration completed!', 'success');
+                addLog(`Epoch: ${simulationData.epoch} | Loss: ${L_total} | mAP: ${simulationData.mAP.toFixed(1)}%`, 'warning');
+            }, 1000);
+        }
+
+        function updateStats() {
+            document.getElementById('stat-epoch').textContent = simulationData.epoch;
+            document.getElementById('stat-loss').textContent = simulationData.totalLoss.toFixed(3);
+            document.getElementById('stat-map').textContent = simulationData.mAP.toFixed(1) + '%';
+            document.getElementById('stat-samples').textContent = simulationData.samplesProcessed;
+        }
+
+        function resetSimulation() {
+            currentStep = 0;
+            document.getElementById('status-display').innerHTML = '<div class="text-green-400">>>> System Reset. Ready...</div>';
+            ['stage-input', 'stage-features', 'stage-encoder', 'stage-decoder', 'stage-cpa', 'stage-das', 'stage-loss'].forEach(id => {
+                document.getElementById(id).classList.add('hidden');
+            });
+            ['btn-extract', 'btn-encoder', 'btn-decoder', 'btn-cpa', 'btn-das', 'btn-loss'].forEach(id => {
+                document.getElementById(id).disabled = true;
+            });
+        }
+
+        function switchTab(e, tabId) {
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.replace('bg-primary-700', 'bg-stone-300'));
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.replace('text-white', 'text-primary-700'));
+            e.target.classList.replace('bg-stone-300', 'bg-primary-700');
+            e.target.classList.replace('text-primary-700', 'text-white');
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
+            document.getElementById(tabId).classList.remove('hidden');
+        }
+
+        // Stage animation
+        let stageIdx = 0;
+        setInterval(() => {
+            document.querySelectorAll('.stage').forEach(s => s.classList.remove('bg-primary-700', 'text-white'));
+            document.querySelectorAll('.stage').forEach(s => s.classList.add('bg-stone-200', 'text-primary-700'));
+            const stages = document.querySelectorAll('.stage');
+            stages[stageIdx].classList.remove('bg-stone-200', 'text-primary-700');
+            stages[stageIdx].classList.add('bg-primary-700', 'text-white');
+            stageIdx = (stageIdx + 1) % stages.length;
+        }, 3000);
+    </script>
+</body>
+
+</html>
