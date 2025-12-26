@@ -3330,23 +3330,68 @@ optimizer.step()
     }
 
     function getVisualStep2Html() {
+      // Start processing animation after render
+      setTimeout(() => {
+        const progressBar = document.getElementById('step2-progress');
+        const statusText = document.getElementById('step2-status');
+        const layerText = document.getElementById('step2-layer');
+        const featuresText = document.getElementById('step2-features');
+
+        if (!progressBar) return;
+
+        let progress = 0;
+        const layers = ['conv1', 'layer1', 'layer2', 'layer3', 'layer4'];
+        let layerIndex = 0;
+
+        const interval = setInterval(() => {
+          progress += 2;
+          progressBar.style.width = progress + '%';
+
+          if (progress % 20 === 0 && layerIndex < layers.length) {
+            layerText.textContent = 'Processing: ' + layers[layerIndex];
+            layerIndex++;
+          }
+
+          if (progress >= 100) {
+            clearInterval(interval);
+            statusText.textContent = 'Hoàn thành!';
+            statusText.classList.remove('text-blue-600');
+            statusText.classList.add('text-green-600');
+            featuresText.classList.remove('opacity-50');
+            featuresText.classList.add('animate-pulse', 'ring-2', 'ring-green-500');
+          }
+        }, 30);
+      }, 100);
+
       return `
         <div class="bg-stone-50 p-5 rounded-lg border-l-4 border-blue-500 fade-in">
           <h4 class="font-semibold text-blue-700 mb-4 flex items-center gap-2">
             <span class="w-8 h-8 bg-blue-500 text-white rounded-full flex items-center justify-center text-sm font-bold">2</span>
             Feature Extraction (ResNet-50)
           </h4>
+          
+          <!-- Processing Animation -->
+          <div class="bg-white p-4 rounded-lg border mb-4">
+            <div class="flex items-center justify-between mb-2">
+              <span id="step2-layer" class="text-sm font-mono text-blue-600">Initializing...</span>
+              <span id="step2-status" class="text-sm font-medium text-blue-600">Processing...</span>
+            </div>
+            <div class="w-full bg-stone-200 rounded-full h-3">
+              <div id="step2-progress" class="bg-gradient-to-r from-blue-500 to-purple-500 h-3 rounded-full transition-all duration-100" style="width: 0%"></div>
+            </div>
+          </div>
+          
           <div class="flex items-center justify-center gap-4 mb-4">
             <div class="text-center">
               <div class="w-32 h-24 bg-gradient-to-br from-blue-200 to-blue-400 rounded-lg flex items-center justify-center text-xs font-mono">Input Image<br>[3, 800, 1333]</div>
             </div>
             <div class="text-4xl text-blue-500 animate-pulse">→</div>
-            <div class="text-center p-4 bg-blue-100 rounded-lg border-2 border-blue-300">
-              <div class="text-3xl mb-2">🔍</div>
+            <div class="text-center p-4 bg-blue-100 rounded-lg border-2 border-blue-300 animate-pulse">
+              <div class="text-3xl mb-2 animate-spin-slow">⚙️</div>
               <strong class="text-blue-700">ResNet-50</strong>
             </div>
             <div class="text-4xl text-blue-500 animate-pulse">→</div>
-            <div class="text-center">
+            <div id="step2-features" class="text-center opacity-50 transition-all duration-500">
               <div class="w-32 h-24 bg-gradient-to-br from-purple-200 to-purple-400 rounded-lg flex items-center justify-center text-xs font-mono">Features<br>[2048, 25, 42]</div>
             </div>
           </div>
@@ -3356,25 +3401,76 @@ optimizer.step()
     }
 
     function getVisualStep3Html() {
+      // Start transformer processing animation
+      setTimeout(() => {
+        const progressBar = document.getElementById('step3-progress');
+        const statusText = document.getElementById('step3-status');
+        const attentionText = document.getElementById('step3-attention');
+        const memoryOutput = document.getElementById('step3-memory');
+
+        if (!progressBar) return;
+
+        let progress = 0;
+        const encoderLayers = ['Encoder Layer 1/6', 'Encoder Layer 2/6', 'Encoder Layer 3/6', 'Encoder Layer 4/6', 'Encoder Layer 5/6', 'Encoder Layer 6/6'];
+        let layerIndex = 0;
+
+        const interval = setInterval(() => {
+          progress += 1.5;
+          progressBar.style.width = Math.min(progress, 100) + '%';
+
+          // Update attention scores display
+          const score1 = (Math.random() * 0.3 + 0.7).toFixed(2);
+          const score2 = (Math.random() * 0.2 + 0.1).toFixed(2);
+          attentionText.textContent = `Attention: [${score1}, ${score2}, ...]`;
+
+          if (progress % 16 === 0 && layerIndex < encoderLayers.length) {
+            statusText.textContent = encoderLayers[layerIndex];
+            layerIndex++;
+          }
+
+          if (progress >= 100) {
+            clearInterval(interval);
+            statusText.textContent = 'Hoàn thành!';
+            statusText.classList.remove('text-orange-600');
+            statusText.classList.add('text-green-600');
+            attentionText.textContent = 'Memory encoded: 1050 tokens';
+            memoryOutput.classList.remove('opacity-50');
+            memoryOutput.classList.add('animate-pulse', 'ring-2', 'ring-green-500');
+          }
+        }, 40);
+      }, 100);
+
       return `
         <div class="bg-stone-50 p-5 rounded-lg border-l-4 border-orange-500 fade-in">
           <h4 class="font-semibold text-orange-700 mb-4 flex items-center gap-2">
             <span class="w-8 h-8 bg-orange-500 text-white rounded-full flex items-center justify-center text-sm font-bold">3</span>
             Transformer Encoder (Self-Attention)
           </h4>
+          
+          <!-- Processing Animation -->
+          <div class="bg-white p-4 rounded-lg border mb-4">
+            <div class="flex items-center justify-between mb-2">
+              <span id="step3-attention" class="text-sm font-mono text-orange-600">Computing attention...</span>
+              <span id="step3-status" class="text-sm font-medium text-orange-600">Initializing...</span>
+            </div>
+            <div class="w-full bg-stone-200 rounded-full h-3">
+              <div id="step3-progress" class="bg-gradient-to-r from-orange-500 to-yellow-500 h-3 rounded-full transition-all duration-100" style="width: 0%"></div>
+            </div>
+          </div>
+          
           <div class="flex items-center justify-center gap-4 mb-4">
             <div class="text-center p-4 bg-purple-100 rounded-lg">
               <div class="text-2xl mb-1">Features</div>
               <div class="text-xs font-mono">[2048, 25, 42]</div>
             </div>
             <div class="text-4xl text-orange-500 animate-pulse">→</div>
-            <div class="text-center p-4 bg-orange-100 rounded-lg border-2 border-orange-300">
+            <div class="text-center p-4 bg-orange-100 rounded-lg border-2 border-orange-300 animate-pulse">
               <div class="text-3xl mb-2">⚡</div>
               <strong class="text-orange-700">Self-Attention</strong>
-              <p class="text-xs">Mỗi vị trí "nhìn" toàn bộ ảnh</p>
+              <p class="text-xs">6 Encoder Layers</p>
             </div>
             <div class="text-4xl text-orange-500 animate-pulse">→</div>
-            <div class="text-center p-4 bg-cyan-100 rounded-lg">
+            <div id="step3-memory" class="text-center p-4 bg-cyan-100 rounded-lg opacity-50 transition-all duration-500">
               <div class="text-2xl mb-1">Memory</div>
               <div class="text-xs font-mono">[1050, 256]</div>
             </div>
@@ -3385,19 +3481,68 @@ optimizer.step()
     }
 
     function getVisualStep4Html() {
+      // Start object queries animation
+      setTimeout(() => {
+        const progressBar = document.getElementById('step4-progress');
+        const statusText = document.getElementById('step4-status');
+        const queryCount = document.getElementById('step4-queries');
+        const detections = document.getElementById('step4-detections');
+
+        if (!progressBar) return;
+
+        let progress = 0;
+        let queriesProcessed = 0;
+        let detectCount = 0;
+
+        const interval = setInterval(() => {
+          progress += 2;
+          queriesProcessed = Math.min(Math.floor(progress * 3), 300);
+          progressBar.style.width = Math.min(progress, 100) + '%';
+          queryCount.textContent = `${queriesProcessed}/300 queries`;
+
+          // Randomly add detections
+          if (progress % 15 === 0 && detectCount < 6) {
+            detectCount++;
+            statusText.textContent = `Found ${detectCount} objects...`;
+          }
+
+          if (progress >= 100) {
+            clearInterval(interval);
+            statusText.textContent = 'Hoàn thành!';
+            statusText.classList.remove('text-pink-600');
+            statusText.classList.add('text-green-600');
+            queryCount.textContent = '6 objects detected';
+            detections.classList.remove('opacity-50');
+            detections.classList.add('animate-pulse');
+          }
+        }, 25);
+      }, 100);
+
       return `
         <div class="bg-stone-50 p-5 rounded-lg border-l-4 border-pink-500 fade-in">
           <h4 class="font-semibold text-pink-700 mb-4 flex items-center gap-2">
             <span class="w-8 h-8 bg-pink-500 text-white rounded-full flex items-center justify-center text-sm font-bold">4</span>
             Decoder + Object Queries
           </h4>
+          
+          <!-- Processing Animation -->
+          <div class="bg-white p-4 rounded-lg border mb-4">
+            <div class="flex items-center justify-between mb-2">
+              <span id="step4-queries" class="text-sm font-mono text-pink-600">0/300 queries</span>
+              <span id="step4-status" class="text-sm font-medium text-pink-600">Scanning image...</span>
+            </div>
+            <div class="w-full bg-stone-200 rounded-full h-3">
+              <div id="step4-progress" class="bg-gradient-to-r from-pink-500 to-rose-500 h-3 rounded-full transition-all duration-100" style="width: 0%"></div>
+            </div>
+          </div>
+          
           <div class="text-center mb-4">
-            <div class="inline-block p-4 bg-amber-50 border border-amber-200 rounded-lg">
-              <strong>300 Object Queries</strong> - Mỗi query học cách dò 1 vật thể
+            <div class="inline-block p-4 bg-amber-50 border border-amber-200 rounded-lg animate-pulse">
+              <strong>300 Object Queries</strong> - Đang quét ảnh tìm vật thể...
             </div>
           </div>
           <img src="images/step4_queries.png" alt="Object Queries" class="w-full max-w-lg mx-auto rounded-lg shadow-md border mb-4">
-          <div class="grid md:grid-cols-3 gap-4 text-center">
+          <div id="step4-detections" class="grid md:grid-cols-3 gap-4 text-center opacity-50 transition-all duration-500">
             <div class="bg-green-100 p-3 rounded-lg border border-green-300">
               <div class="text-2xl">🚗</div>
               <strong class="text-green-700">car</strong>
@@ -3418,27 +3563,72 @@ optimizer.step()
     }
 
     function getVisualStep5Html() {
+      // Start CPA alignment animation
+      setTimeout(() => {
+        const progressBar = document.getElementById('step5-progress');
+        const statusText = document.getElementById('step5-status');
+        const distanceText = document.getElementById('step5-distance');
+        const sourceCircle = document.getElementById('step5-source');
+        const targetCircle = document.getElementById('step5-target');
+
+        if (!progressBar) return;
+
+        let progress = 0;
+        let distance = 2.5;
+
+        const interval = setInterval(() => {
+          progress += 1.5;
+          distance = Math.max(2.5 - (progress * 0.025), 0.1);
+          progressBar.style.width = Math.min(progress, 100) + '%';
+          distanceText.textContent = `Distance: ${distance.toFixed(2)}`;
+
+          // Move circles closer
+          const offset = 50 - (progress * 0.3);
+          if (sourceCircle) sourceCircle.style.transform = `translateX(${offset}px)`;
+          if (targetCircle) targetCircle.style.transform = `translateX(-${offset}px)`;
+
+          if (progress >= 100) {
+            clearInterval(interval);
+            statusText.textContent = 'Aligned!';
+            statusText.classList.remove('text-purple-600');
+            statusText.classList.add('text-green-600');
+            distanceText.textContent = 'Distance: 0.10 ✓';
+            distanceText.classList.add('text-green-600');
+          }
+        }, 35);
+      }, 100);
+
       return `
         <div class="bg-stone-50 p-5 rounded-lg border-l-4 border-purple-500 fade-in">
           <h4 class="font-semibold text-purple-700 mb-4 flex items-center gap-2">
             <span class="w-8 h-8 bg-purple-500 text-white rounded-full flex items-center justify-center text-sm font-bold">5</span>
             CPA: Class-wise Prototype Alignment
           </h4>
+          
+          <!-- Processing Animation -->
+          <div class="bg-white p-4 rounded-lg border mb-4">
+            <div class="flex items-center justify-between mb-2">
+              <span id="step5-distance" class="text-sm font-mono text-purple-600">Distance: 2.50</span>
+              <span id="step5-status" class="text-sm font-medium text-purple-600">Aligning domains...</span>
+            </div>
+            <div class="w-full bg-stone-200 rounded-full h-3">
+              <div id="step5-progress" class="bg-gradient-to-r from-purple-500 to-pink-500 h-3 rounded-full transition-all duration-100" style="width: 0%"></div>
+            </div>
+          </div>
+          
           <img src="images/step5_alignment.png" alt="Prototype Alignment" class="w-full max-w-lg mx-auto rounded-lg shadow-md border mb-4">
-          <div class="flex items-center justify-center gap-6">
-            <div class="text-center">
-              <div class="w-20 h-20 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold text-xl animate-pulse">S</div>
-              <p class="mt-2 font-medium">Source Prototypes</p>
+          <div class="flex items-center justify-center gap-6 overflow-hidden">
+            <div class="text-center transition-transform duration-300" id="step5-source" style="transform: translateX(50px)">
+              <div class="w-20 h-20 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold text-xl">S</div>
+              <p class="mt-2 font-medium">Source</p>
             </div>
-            <div class="flex-1 max-w-48">
-              <div class="flex items-center gap-2">
-                <div class="flex-1 h-3 bg-gradient-to-r from-blue-500 via-purple-500 to-rose-500 rounded-full"></div>
-              </div>
-              <p class="text-center text-sm mt-2 font-medium text-purple-600">Domain Alignment →</p>
+            <div class="flex-1 max-w-32">
+              <div class="h-3 bg-gradient-to-r from-blue-500 via-purple-500 to-rose-500 rounded-full"></div>
+              <p class="text-center text-sm mt-2 font-medium text-purple-600">← Converging →</p>
             </div>
-            <div class="text-center">
-              <div class="w-20 h-20 bg-rose-500 rounded-full flex items-center justify-center text-white font-bold text-xl animate-pulse">T</div>
-              <p class="mt-2 font-medium">Target Prototypes</p>
+            <div class="text-center transition-transform duration-300" id="step5-target" style="transform: translateX(-50px)">
+              <div class="w-20 h-20 bg-rose-500 rounded-full flex items-center justify-center text-white font-bold text-xl">T</div>
+              <p class="mt-2 font-medium">Target</p>
             </div>
           </div>
           <p class="text-center text-sm text-primary-600 mt-4">Adversarial learning căn chỉnh prototypes để Discriminator không thể phân biệt Source/Target</p>
@@ -3446,28 +3636,77 @@ optimizer.step()
     }
 
     function getVisualStep6Html() {
+      // Start DAS memory bank animation
+      setTimeout(() => {
+        const progressBar = document.getElementById('step6-progress');
+        const statusText = document.getElementById('step6-status');
+        const memoryCount = document.getElementById('step6-memory');
+        const memoryItems = document.querySelectorAll('.memory-item');
+        const contrastiveResult = document.getElementById('step6-contrastive');
+
+        if (!progressBar) return;
+
+        let progress = 0;
+        let itemIndex = 0;
+
+        const interval = setInterval(() => {
+          progress += 2;
+          progressBar.style.width = Math.min(progress, 100) + '%';
+          memoryCount.textContent = `${Math.min(Math.floor(progress * 1.5), 150)} prototypes`;
+
+          // Show memory items one by one
+          if (itemIndex < memoryItems.length && progress % 12 === 0) {
+            memoryItems[itemIndex].classList.remove('opacity-0', 'scale-0');
+            memoryItems[itemIndex].classList.add('opacity-100', 'scale-100');
+            itemIndex++;
+          }
+
+          if (progress >= 100) {
+            clearInterval(interval);
+            statusText.textContent = 'Aligned!';
+            statusText.classList.remove('text-cyan-600');
+            statusText.classList.add('text-green-600');
+            memoryCount.textContent = '150 prototypes stored';
+            contrastiveResult.classList.remove('opacity-50');
+            contrastiveResult.classList.add('animate-pulse');
+          }
+        }, 30);
+      }, 100);
+
       return `
         <div class="bg-stone-50 p-5 rounded-lg border-l-4 border-cyan-500 fade-in">
           <h4 class="font-semibold text-cyan-700 mb-4 flex items-center gap-2">
             <span class="w-8 h-8 bg-cyan-500 text-white rounded-full flex items-center justify-center text-sm font-bold">6</span>
             DAS: Dataset-level Alignment Strategy
           </h4>
+          
+          <!-- Processing Animation -->
+          <div class="bg-white p-4 rounded-lg border mb-4">
+            <div class="flex items-center justify-between mb-2">
+              <span id="step6-memory" class="text-sm font-mono text-cyan-600">0 prototypes</span>
+              <span id="step6-status" class="text-sm font-medium text-cyan-600">Building memory bank...</span>
+            </div>
+            <div class="w-full bg-stone-200 rounded-full h-3">
+              <div id="step6-progress" class="bg-gradient-to-r from-cyan-500 to-teal-500 h-3 rounded-full transition-all duration-100" style="width: 0%"></div>
+            </div>
+          </div>
+          
           <div class="bg-white p-4 rounded-lg border mb-4">
             <div class="text-center mb-3">
               <strong>Memory Bank - Tích lũy prototypes từ toàn dataset</strong>
             </div>
             <div class="flex flex-wrap justify-center gap-2">
-              <span class="px-3 py-1 bg-green-200 rounded-full text-sm">car_1</span>
-              <span class="px-3 py-1 bg-green-200 rounded-full text-sm">car_2</span>
-              <span class="px-3 py-1 bg-blue-200 rounded-full text-sm">person_1</span>
-              <span class="px-3 py-1 bg-blue-200 rounded-full text-sm">person_2</span>
-              <span class="px-3 py-1 bg-yellow-200 rounded-full text-sm">bike_1</span>
-              <span class="px-3 py-1 bg-purple-200 rounded-full text-sm">bus_1</span>
-              <span class="px-3 py-1 bg-orange-200 rounded-full text-sm">truck_1</span>
-              <span class="text-primary-400">...</span>
+              <span class="memory-item px-3 py-1 bg-green-200 rounded-full text-sm opacity-0 scale-0 transition-all duration-300">car_1</span>
+              <span class="memory-item px-3 py-1 bg-green-200 rounded-full text-sm opacity-0 scale-0 transition-all duration-300">car_2</span>
+              <span class="memory-item px-3 py-1 bg-blue-200 rounded-full text-sm opacity-0 scale-0 transition-all duration-300">person_1</span>
+              <span class="memory-item px-3 py-1 bg-blue-200 rounded-full text-sm opacity-0 scale-0 transition-all duration-300">person_2</span>
+              <span class="memory-item px-3 py-1 bg-yellow-200 rounded-full text-sm opacity-0 scale-0 transition-all duration-300">bike_1</span>
+              <span class="memory-item px-3 py-1 bg-purple-200 rounded-full text-sm opacity-0 scale-0 transition-all duration-300">bus_1</span>
+              <span class="memory-item px-3 py-1 bg-orange-200 rounded-full text-sm opacity-0 scale-0 transition-all duration-300">truck_1</span>
+              <span class="memory-item px-3 py-1 bg-stone-300 rounded-full text-sm opacity-0 scale-0 transition-all duration-300">+143 more</span>
             </div>
           </div>
-          <div class="bg-cyan-50 p-4 rounded-lg border border-cyan-200">
+          <div id="step6-contrastive" class="bg-cyan-50 p-4 rounded-lg border border-cyan-200 opacity-50 transition-all duration-500">
             <strong class="text-cyan-700">Contrastive Learning:</strong>
             <ul class="text-sm mt-2 space-y-1">
               <li class="flex items-center gap-2"><span class="text-green-500">✓</span> Positive: car ↔ car (gần nhau)</li>
