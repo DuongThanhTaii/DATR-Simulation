@@ -1001,6 +1001,58 @@ optimizer.step()
       </div>
     </section>
 
+    <!-- Section: Minh Họa Trực Quan DATR Pipeline (Step-by-Step) -->
+    <section class="bg-white border border-stone-200 rounded-xl p-6 md:p-8 mb-6 shadow-sm">
+      <h2 class="text-xl font-semibold text-primary-700 mb-4 pb-2 border-b-2 border-accent-500">
+        Minh Họa Trực Quan: DATR Pipeline
+      </h2>
+
+      <div class="bg-gradient-to-r from-blue-50 to-purple-50 border-l-4 border-purple-500 p-4 rounded-r-lg mb-6">
+        <p class="text-sm">
+          <strong>Tương tác:</strong>
+          Click "Bắt đầu" rồi "Bước tiếp theo" để xem từng bước xử lý của DATR với hình ảnh minh họa
+        </p>
+      </div>
+
+      <!-- Progress Bar -->
+      <div id="visual-progress-container" class="hidden mb-4">
+        <div class="flex items-center justify-between mb-2">
+          <span class="text-sm font-medium text-primary-700">Tiến độ:</span>
+          <span id="visual-progress-text" class="text-sm text-primary-500">0/7 bước</span>
+        </div>
+        <div class="w-full bg-stone-200 rounded-full h-3">
+          <div id="visual-progress-bar"
+            class="bg-gradient-to-r from-purple-500 to-pink-500 h-3 rounded-full transition-all duration-500"
+            style="width: 0%"></div>
+        </div>
+      </div>
+
+      <!-- Start Button -->
+      <div id="visual-start-container" class="text-center mb-6">
+        <button onclick="initVisualSimulation()" id="visual-start-btn"
+          class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-8 rounded-lg text-lg transition-all transform hover:scale-105">
+          Bắt đầu xem minh họa
+        </button>
+      </div>
+
+      <!-- Visual Step Output -->
+      <div id="visual-step-output" class="space-y-4"></div>
+
+      <!-- Control Buttons -->
+      <div id="visual-nav-container" class="hidden mt-6 pt-4 border-t border-stone-200">
+        <div class="flex items-center justify-between">
+          <button onclick="resetVisualSimulation()" id="visual-reset-btn"
+            class="bg-stone-500 hover:bg-stone-600 text-white font-medium py-2 px-5 rounded-lg text-sm transition-all">
+            Làm lại
+          </button>
+          <button onclick="nextVisualStep()" id="visual-next-btn"
+            class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-8 rounded-lg text-lg transition-all transform hover:scale-105">
+            Bước tiếp theo
+          </button>
+        </div>
+      </div>
+    </section>
+
     <!-- Section: Tổng kết -->
     <section class="bg-white border border-stone-200 rounded-xl p-6 md:p-8 mb-6 shadow-sm">
       <h2 class="text-xl font-semibold text-primary-700 mb-4 pb-2 border-b-2 border-accent-500">
@@ -3180,6 +3232,284 @@ optimizer.step()
           <div class="bg-green-50 border-l-4 border-green-500 p-4 rounded-r">
             <p class="font-semibold text-green-700">Thành công!</p>
             <p class="text-sm text-green-700 mt-1">Improvement: <strong>+17.2% mAP!</strong></p>
+          </div>
+        </div>`;
+    }
+
+    // ========== VISUAL STEP-BY-STEP SIMULATION ==========
+    let visualCurrentStep = 0;
+    const visualTotalSteps = 7;
+
+    function resetVisualSimulation() {
+      visualCurrentStep = 0;
+      document.getElementById("visual-step-output").innerHTML = '';
+      document.getElementById("visual-progress-container").classList.add("hidden");
+      document.getElementById("visual-nav-container").classList.add("hidden");
+      document.getElementById("visual-start-container").classList.remove("hidden");
+      document.getElementById("visual-next-btn").innerHTML = "Bước tiếp theo";
+      document.getElementById("visual-next-btn").disabled = false;
+      document.getElementById("visual-next-btn").classList.remove("bg-gray-400", "cursor-not-allowed");
+      document.getElementById("visual-next-btn").classList.add("bg-purple-600", "hover:bg-purple-700", "hover:scale-105");
+    }
+
+    function initVisualSimulation() {
+      resetVisualSimulation();
+      document.getElementById("visual-start-container").classList.add("hidden");
+      document.getElementById("visual-progress-container").classList.remove("hidden");
+      document.getElementById("visual-nav-container").classList.remove("hidden");
+      nextVisualStep();
+    }
+
+    async function nextVisualStep() {
+      if (visualCurrentStep >= visualTotalSteps) {
+        document.getElementById("visual-next-btn").innerHTML = "Hoàn thành!";
+        document.getElementById("visual-next-btn").disabled = true;
+        document.getElementById("visual-next-btn").classList.remove("bg-purple-600", "hover:bg-purple-700", "hover:scale-105");
+        document.getElementById("visual-next-btn").classList.add("bg-gray-400", "cursor-not-allowed");
+        return;
+      }
+
+      visualCurrentStep++;
+      const percent = (visualCurrentStep / visualTotalSteps) * 100;
+      document.getElementById("visual-progress-bar").style.width = percent + '%';
+      document.getElementById("visual-progress-text").textContent = `${visualCurrentStep}/${visualTotalSteps} bước`;
+
+      const output = document.getElementById("visual-step-output");
+
+      switch (visualCurrentStep) {
+        case 1:
+          await addStepWithAnimation(output, getVisualStep1Html(), 100);
+          break;
+        case 2:
+          await addStepWithAnimation(output, getVisualStep2Html(), 100);
+          break;
+        case 3:
+          await addStepWithAnimation(output, getVisualStep3Html(), 100);
+          break;
+        case 4:
+          await addStepWithAnimation(output, getVisualStep4Html(), 100);
+          break;
+        case 5:
+          await addStepWithAnimation(output, getVisualStep5Html(), 100);
+          break;
+        case 6:
+          await addStepWithAnimation(output, getVisualStep6Html(), 100);
+          break;
+        case 7:
+          await addStepWithAnimation(output, getVisualStep7Html(), 100);
+          document.getElementById("visual-next-btn").classList.add("hidden");
+          break;
+      }
+    }
+
+    function getVisualStep1Html() {
+      return `
+        <div class="bg-stone-50 p-5 rounded-lg border-l-4 border-green-500 fade-in">
+          <h4 class="font-semibold text-green-700 mb-4 flex items-center gap-2">
+            <span class="w-8 h-8 bg-green-500 text-white rounded-full flex items-center justify-center text-sm font-bold">1</span>
+            Input: Source vs Target Domain
+          </h4>
+          <div class="grid md:grid-cols-2 gap-6">
+            <div class="relative">
+              <div class="absolute -top-3 left-4 bg-blue-600 text-white px-3 py-1 rounded-full text-xs font-bold z-10">SOURCE DOMAIN</div>
+              <img src="images/source_clear.png" alt="Clear cityscape" class="w-full rounded-lg shadow-lg border-4 border-blue-500">
+              <p class="text-center mt-2 text-sm text-primary-600">Ảnh rõ ràng - Có labels</p>
+            </div>
+            <div class="relative">
+              <div class="absolute -top-3 left-4 bg-rose-600 text-white px-3 py-1 rounded-full text-xs font-bold z-10">TARGET DOMAIN</div>
+              <img src="images/target_foggy.png" alt="Foggy cityscape" class="w-full rounded-lg shadow-lg border-4 border-rose-500">
+              <p class="text-center mt-2 text-sm text-primary-600">Ảnh sương mù - Không có labels</p>
+            </div>
+          </div>
+          <div class="text-center mt-4">
+            <span class="inline-block bg-amber-100 text-amber-700 px-4 py-2 rounded-lg text-sm">
+              Thách thức: Làm sao để phát hiện vật thể trong sương mù khi chỉ được huấn luyện trên ảnh rõ?
+            </span>
+          </div>
+        </div>`;
+    }
+
+    function getVisualStep2Html() {
+      return `
+        <div class="bg-stone-50 p-5 rounded-lg border-l-4 border-blue-500 fade-in">
+          <h4 class="font-semibold text-blue-700 mb-4 flex items-center gap-2">
+            <span class="w-8 h-8 bg-blue-500 text-white rounded-full flex items-center justify-center text-sm font-bold">2</span>
+            Feature Extraction (ResNet-50)
+          </h4>
+          <div class="flex items-center justify-center gap-4 mb-4">
+            <div class="text-center">
+              <div class="w-32 h-24 bg-gradient-to-br from-blue-200 to-blue-400 rounded-lg flex items-center justify-center text-xs font-mono">Input Image<br>[3, 800, 1333]</div>
+            </div>
+            <div class="text-4xl text-blue-500 animate-pulse">→</div>
+            <div class="text-center p-4 bg-blue-100 rounded-lg border-2 border-blue-300">
+              <div class="text-3xl mb-2">🔍</div>
+              <strong class="text-blue-700">ResNet-50</strong>
+            </div>
+            <div class="text-4xl text-blue-500 animate-pulse">→</div>
+            <div class="text-center">
+              <div class="w-32 h-24 bg-gradient-to-br from-purple-200 to-purple-400 rounded-lg flex items-center justify-center text-xs font-mono">Features<br>[2048, 25, 42]</div>
+            </div>
+          </div>
+          <img src="images/step2_features.png" alt="Feature Extraction" class="w-full max-w-lg mx-auto rounded-lg shadow-md border">
+          <p class="text-center text-sm text-primary-600 mt-3">Ảnh được chuyển thành Feature Map - giảm kích thước nhưng giữ thông tin quan trọng</p>
+        </div>`;
+    }
+
+    function getVisualStep3Html() {
+      return `
+        <div class="bg-stone-50 p-5 rounded-lg border-l-4 border-orange-500 fade-in">
+          <h4 class="font-semibold text-orange-700 mb-4 flex items-center gap-2">
+            <span class="w-8 h-8 bg-orange-500 text-white rounded-full flex items-center justify-center text-sm font-bold">3</span>
+            Transformer Encoder (Self-Attention)
+          </h4>
+          <div class="flex items-center justify-center gap-4 mb-4">
+            <div class="text-center p-4 bg-purple-100 rounded-lg">
+              <div class="text-2xl mb-1">Features</div>
+              <div class="text-xs font-mono">[2048, 25, 42]</div>
+            </div>
+            <div class="text-4xl text-orange-500 animate-pulse">→</div>
+            <div class="text-center p-4 bg-orange-100 rounded-lg border-2 border-orange-300">
+              <div class="text-3xl mb-2">⚡</div>
+              <strong class="text-orange-700">Self-Attention</strong>
+              <p class="text-xs">Mỗi vị trí "nhìn" toàn bộ ảnh</p>
+            </div>
+            <div class="text-4xl text-orange-500 animate-pulse">→</div>
+            <div class="text-center p-4 bg-cyan-100 rounded-lg">
+              <div class="text-2xl mb-1">Memory</div>
+              <div class="text-xs font-mono">[1050, 256]</div>
+            </div>
+          </div>
+          <img src="images/step3_transformer.png" alt="Self-Attention" class="w-full max-w-lg mx-auto rounded-lg shadow-md border">
+          <p class="text-center text-sm text-primary-600 mt-3">Attention cho phép mỗi vị trí feature "nhìn thấy" context toàn ảnh</p>
+        </div>`;
+    }
+
+    function getVisualStep4Html() {
+      return `
+        <div class="bg-stone-50 p-5 rounded-lg border-l-4 border-pink-500 fade-in">
+          <h4 class="font-semibold text-pink-700 mb-4 flex items-center gap-2">
+            <span class="w-8 h-8 bg-pink-500 text-white rounded-full flex items-center justify-center text-sm font-bold">4</span>
+            Decoder + Object Queries
+          </h4>
+          <div class="text-center mb-4">
+            <div class="inline-block p-4 bg-amber-50 border border-amber-200 rounded-lg">
+              <strong>300 Object Queries</strong> - Mỗi query học cách dò 1 vật thể
+            </div>
+          </div>
+          <img src="images/step4_queries.png" alt="Object Queries" class="w-full max-w-lg mx-auto rounded-lg shadow-md border mb-4">
+          <div class="grid md:grid-cols-3 gap-4 text-center">
+            <div class="bg-green-100 p-3 rounded-lg border border-green-300">
+              <div class="text-2xl">🚗</div>
+              <strong class="text-green-700">car</strong>
+              <p class="text-xs">Query #5, #23, #87</p>
+            </div>
+            <div class="bg-blue-100 p-3 rounded-lg border border-blue-300">
+              <div class="text-2xl">🚶</div>
+              <strong class="text-blue-700">person</strong>
+              <p class="text-xs">Query #12, #45</p>
+            </div>
+            <div class="bg-yellow-100 p-3 rounded-lg border border-yellow-300">
+              <div class="text-2xl">🚲</div>
+              <strong class="text-yellow-700">bike</strong>
+              <p class="text-xs">Query #67</p>
+            </div>
+          </div>
+        </div>`;
+    }
+
+    function getVisualStep5Html() {
+      return `
+        <div class="bg-stone-50 p-5 rounded-lg border-l-4 border-purple-500 fade-in">
+          <h4 class="font-semibold text-purple-700 mb-4 flex items-center gap-2">
+            <span class="w-8 h-8 bg-purple-500 text-white rounded-full flex items-center justify-center text-sm font-bold">5</span>
+            CPA: Class-wise Prototype Alignment
+          </h4>
+          <img src="images/step5_alignment.png" alt="Prototype Alignment" class="w-full max-w-lg mx-auto rounded-lg shadow-md border mb-4">
+          <div class="flex items-center justify-center gap-6">
+            <div class="text-center">
+              <div class="w-20 h-20 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold text-xl animate-pulse">S</div>
+              <p class="mt-2 font-medium">Source Prototypes</p>
+            </div>
+            <div class="flex-1 max-w-48">
+              <div class="flex items-center gap-2">
+                <div class="flex-1 h-3 bg-gradient-to-r from-blue-500 via-purple-500 to-rose-500 rounded-full"></div>
+              </div>
+              <p class="text-center text-sm mt-2 font-medium text-purple-600">Domain Alignment →</p>
+            </div>
+            <div class="text-center">
+              <div class="w-20 h-20 bg-rose-500 rounded-full flex items-center justify-center text-white font-bold text-xl animate-pulse">T</div>
+              <p class="mt-2 font-medium">Target Prototypes</p>
+            </div>
+          </div>
+          <p class="text-center text-sm text-primary-600 mt-4">Adversarial learning căn chỉnh prototypes để Discriminator không thể phân biệt Source/Target</p>
+        </div>`;
+    }
+
+    function getVisualStep6Html() {
+      return `
+        <div class="bg-stone-50 p-5 rounded-lg border-l-4 border-cyan-500 fade-in">
+          <h4 class="font-semibold text-cyan-700 mb-4 flex items-center gap-2">
+            <span class="w-8 h-8 bg-cyan-500 text-white rounded-full flex items-center justify-center text-sm font-bold">6</span>
+            DAS: Dataset-level Alignment Strategy
+          </h4>
+          <div class="bg-white p-4 rounded-lg border mb-4">
+            <div class="text-center mb-3">
+              <strong>Memory Bank - Tích lũy prototypes từ toàn dataset</strong>
+            </div>
+            <div class="flex flex-wrap justify-center gap-2">
+              <span class="px-3 py-1 bg-green-200 rounded-full text-sm">car_1</span>
+              <span class="px-3 py-1 bg-green-200 rounded-full text-sm">car_2</span>
+              <span class="px-3 py-1 bg-blue-200 rounded-full text-sm">person_1</span>
+              <span class="px-3 py-1 bg-blue-200 rounded-full text-sm">person_2</span>
+              <span class="px-3 py-1 bg-yellow-200 rounded-full text-sm">bike_1</span>
+              <span class="px-3 py-1 bg-purple-200 rounded-full text-sm">bus_1</span>
+              <span class="px-3 py-1 bg-orange-200 rounded-full text-sm">truck_1</span>
+              <span class="text-primary-400">...</span>
+            </div>
+          </div>
+          <div class="bg-cyan-50 p-4 rounded-lg border border-cyan-200">
+            <strong class="text-cyan-700">Contrastive Learning:</strong>
+            <ul class="text-sm mt-2 space-y-1">
+              <li class="flex items-center gap-2"><span class="text-green-500">✓</span> Positive: car ↔ car (gần nhau)</li>
+              <li class="flex items-center gap-2"><span class="text-red-500">✗</span> Negative: car ↔ person (xa nhau)</li>
+            </ul>
+          </div>
+        </div>`;
+    }
+
+    function getVisualStep7Html() {
+      return `
+        <div class="bg-gradient-to-r from-green-50 to-emerald-50 p-6 rounded-lg border-2 border-green-500 fade-in">
+          <h4 class="font-semibold text-green-700 mb-4 flex items-center gap-2">
+            <span class="w-8 h-8 bg-green-500 text-white rounded-full flex items-center justify-center text-sm font-bold">7</span>
+            Kết quả: Detection trên ảnh sương mù
+          </h4>
+          <div class="grid md:grid-cols-2 gap-6 mb-6">
+            <div class="relative">
+              <div class="absolute -top-3 left-4 bg-green-600 text-white px-3 py-1 rounded-full text-xs font-bold z-10">TRAIN: CLEAR</div>
+              <img src="images/detect_clear.png" alt="Detection on clear" class="w-full rounded-lg shadow-lg border-4 border-green-500">
+              <p class="text-center mt-2 text-sm text-green-600 font-semibold">mAP: 95.2%</p>
+            </div>
+            <div class="relative">
+              <div class="absolute -top-3 left-4 bg-emerald-600 text-white px-3 py-1 rounded-full text-xs font-bold z-10">TEST: FOGGY (DATR)</div>
+              <img src="images/detect_foggy.png" alt="Detection on foggy with DATR" class="w-full rounded-lg shadow-lg border-4 border-emerald-500">
+              <p class="text-center mt-2 text-sm text-emerald-600 font-semibold">mAP: 52.8%</p>
+            </div>
+          </div>
+          <div class="text-center">
+            
+            <h3 class="text-2xl font-bold text-green-700 mb-2">DATR Thành Công!</h3>
+            <div class="flex justify-center gap-8 mt-4">
+              <div class="text-center bg-red-100 px-6 py-3 rounded-lg">
+                <div class="text-3xl font-bold text-red-500">35.6%</div>
+                <div class="text-sm text-red-600">Baseline</div>
+              </div>
+              <div class="text-4xl text-primary-400 flex items-center">→</div>
+              <div class="text-center bg-green-100 px-6 py-3 rounded-lg">
+                <div class="text-3xl font-bold text-green-600">52.8%</div>
+                <div class="text-sm text-green-700">DATR (+17.2%)</div>
+              </div>
+            </div>
           </div>
         </div>`;
     }
