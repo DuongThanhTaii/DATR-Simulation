@@ -439,55 +439,6 @@
         Bạn sẽ trực tiếp điều khiển từng bước xử lý của DATR!
       </div>
 
-      <!-- Control Panel -->
-      <div class="bg-primary-900 text-white p-5 rounded-lg mb-4">
-        <h3 class="text-green-400 font-medium mb-3">Bảng Điều Khiển</h3>
-        <div class="flex flex-wrap gap-2 mb-4">
-          <button class="px-4 py-2 bg-green-600 hover:bg-green-700 rounded-md text-sm transition-colors"
-            onclick="loadImages()">
-            1. Load Images
-          </button>
-          <button
-            class="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-md text-sm transition-colors disabled:opacity-50"
-            id="btn-extract" disabled onclick="extractFeatures()">
-            2. Extract Features
-          </button>
-          <button
-            class="px-4 py-2 bg-orange-500 hover:bg-orange-600 rounded-md text-sm transition-colors disabled:opacity-50"
-            id="btn-encoder" disabled onclick="runEncoder()">
-            3. Run Encoder
-          </button>
-          <button
-            class="px-4 py-2 bg-pink-600 hover:bg-pink-700 rounded-md text-sm transition-colors disabled:opacity-50"
-            id="btn-decoder" disabled onclick="runDecoder()">
-            4. Run Decoder
-          </button>
-          <button
-            class="px-4 py-2 bg-purple-600 hover:bg-purple-700 rounded-md text-sm transition-colors disabled:opacity-50"
-            id="btn-cpa" disabled onclick="runCPA()">
-            5. Run CPA
-          </button>
-          <button
-            class="px-4 py-2 bg-cyan-600 hover:bg-cyan-700 rounded-md text-sm transition-colors disabled:opacity-50"
-            id="btn-das" disabled onclick="runDAS()">
-            6. Run DAS
-          </button>
-          <button class="px-4 py-2 bg-red-600 hover:bg-red-700 rounded-md text-sm transition-colors disabled:opacity-50"
-            id="btn-loss" disabled onclick="computeLoss()">
-            7. Compute Loss
-          </button>
-          <button class="px-4 py-2 bg-stone-600 hover:bg-stone-700 rounded-md text-sm transition-colors"
-            onclick="resetSimulation()">
-            Reset
-          </button>
-        </div>
-        <div id="status-display" class="bg-primary-800 p-4 rounded-lg font-mono text-sm max-h-48 overflow-y-auto">
-          <div class="text-green-400">
-            >>> System Ready. Click "Load Images" to start...
-          </div>
-        </div>
-      </div>
-
       <!-- Visualization Stages -->
       <div class="space-y-4">
         <!-- Stage 1: Input -->
@@ -730,39 +681,126 @@ def contrastive_loss(proto_src, proto_tgt, dataset_proto, temperature=0.07):
           <h4 class="font-semibold text-red-700 mb-3">
             Stage 7: Total Loss Computation
           </h4>
+
+          <!-- Loss Formula Display -->
+          <div class="bg-white p-5 rounded-lg border mb-4">
+            <div class="text-center mb-4">
+              <strong class="text-primary-700 text-lg">Total Loss Function:</strong>
+              <div class="mt-3 text-xl">
+                \( \mathcal{L}_{total} = \mathcal{L}_{det} + \lambda_a \mathcal{L}_{adv} + \lambda_c \mathcal{L}_{con}
+                \)
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+              <div class="bg-blue-50 p-4 rounded-lg border border-blue-200 text-center">
+                <strong class="text-blue-700">Detection Loss</strong>
+                <div class="mt-2 text-sm">
+                  \( \mathcal{L}_{det} = \text{CE} + \mathcal{L}_{box} \)
+                </div>
+                <div id="loss-det-value" class="font-mono font-bold text-blue-600 mt-2">—</div>
+              </div>
+              <div class="bg-purple-50 p-4 rounded-lg border border-purple-200 text-center">
+                <strong class="text-purple-700">Adversarial Loss</strong>
+                <div class="mt-2 text-sm">
+                  \( \mathcal{L}_{adv} = \text{BCE}(D(P), y) \)
+                </div>
+                <div id="loss-adv-value" class="font-mono font-bold text-purple-600 mt-2">—</div>
+              </div>
+              <div class="bg-cyan-50 p-4 rounded-lg border border-cyan-200 text-center">
+                <strong class="text-cyan-700">Contrastive Loss</strong>
+                <div class="mt-2 text-sm">
+                  \( \mathcal{L}_{con} = -\log\frac{e^{sim/\tau}}{\sum e^{sim/\tau}} \)
+                </div>
+                <div id="loss-con-value" class="font-mono font-bold text-cyan-600 mt-2">—</div>
+              </div>
+            </div>
+
+            <div class="bg-stone-50 p-4 rounded-lg border mt-4">
+              <div class="text-center">
+                <strong>Calculation:</strong>
+                <div class="mt-2 font-mono text-sm">
+                  \( \mathcal{L}_{total} = \) <span id="loss-det-calc">?</span> \( + 0.1 \times \) <span
+                    id="loss-adv-calc">?</span> \( + 0.1 \times \) <span id="loss-con-calc">?</span>
+                </div>
+                <div class="text-red-600 font-bold text-2xl mt-3" id="total-loss-value">= ?</div>
+              </div>
+            </div>
+          </div>
+
           <div id="loss-breakdown" class="mb-4"></div>
 
           <div class="code-block p-3 rounded-lg text-xs mb-3">
             <pre>
 # Total Loss:
-def compute_total_loss(predictions, targets, proto_src, proto_tgt, dataset_proto):
-    # Detection Loss (DINO style)
-    L_det = F.cross_entropy(logits_src, gt_labels) + bbox_loss(boxes_src, gt_boxes)
-    
-    # Adversarial Loss (CPA)
-    L_adv = adversarial_loss(proto_src, proto_tgt)
-    
-    # Contrastive Loss (DAS)
-    L_contrast = contrastive_loss(proto_src, proto_tgt, dataset_proto)
-    
-    # Total: L = L_det + λ_a*L_adv + λ_c*L_contrast
-    L_total = L_det + 0.1 * L_adv + 0.1 * L_contrast
-    return L_total
+L_total = L_det + λ_a * L_adv + λ_c * L_contrast
+        = L_det + 0.1 * L_adv + 0.1 * L_contrast
 
 # Backward and optimize
 optimizer.zero_grad()
 L_total.backward()
 optimizer.step()
 
-# Update teacher with EMA (Stage 2 only)
-alpha = 0.999
-for p_t, p_s in zip(teacher.parameters(), student.parameters()):
-    p_t.data = alpha * p_t.data + (1 - alpha) * p_s.data</pre>
+# Update teacher with EMA
+θ_teacher = α * θ_teacher + (1-α) * θ_student
+# where α = 0.999</pre>
           </div>
 
           <div class="bg-green-50 border-l-4 border-green-500 p-3 rounded-r text-sm">
             <strong>Loss Components:</strong>
-            L_det (detection) + λ_a×L_adv (CPA) + λ_c×L_contrast (DAS)
+            <div class="mt-2">
+              \( \mathcal{L}_{det} \) (detection) + \( \lambda_a \times \mathcal{L}_{adv} \) (CPA) + \( \lambda_c \times
+              \mathcal{L}_{con} \) (DAS)
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Control Panel - At bottom of stages -->
+      <div class="bg-primary-900 text-white p-5 rounded-lg mt-4">
+        <h3 class="text-green-400 font-medium mb-3">Bảng Điều Khiển</h3>
+        <div class="flex flex-wrap gap-2 mb-4">
+          <button class="px-4 py-2 bg-green-600 hover:bg-green-700 rounded-md text-sm transition-colors"
+            onclick="loadImages()">
+            1. Load Images
+          </button>
+          <button
+            class="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-md text-sm transition-colors disabled:opacity-50"
+            id="btn-extract" disabled onclick="extractFeatures()">
+            2. Extract Features
+          </button>
+          <button
+            class="px-4 py-2 bg-orange-500 hover:bg-orange-600 rounded-md text-sm transition-colors disabled:opacity-50"
+            id="btn-encoder" disabled onclick="runEncoder()">
+            3. Run Encoder
+          </button>
+          <button
+            class="px-4 py-2 bg-pink-600 hover:bg-pink-700 rounded-md text-sm transition-colors disabled:opacity-50"
+            id="btn-decoder" disabled onclick="runDecoder()">
+            4. Run Decoder
+          </button>
+          <button
+            class="px-4 py-2 bg-purple-600 hover:bg-purple-700 rounded-md text-sm transition-colors disabled:opacity-50"
+            id="btn-cpa" disabled onclick="runCPA()">
+            5. Run CPA
+          </button>
+          <button
+            class="px-4 py-2 bg-cyan-600 hover:bg-cyan-700 rounded-md text-sm transition-colors disabled:opacity-50"
+            id="btn-das" disabled onclick="runDAS()">
+            6. Run DAS
+          </button>
+          <button class="px-4 py-2 bg-red-600 hover:bg-red-700 rounded-md text-sm transition-colors disabled:opacity-50"
+            id="btn-loss" disabled onclick="computeLoss()">
+            7. Compute Loss
+          </button>
+          <button class="px-4 py-2 bg-stone-600 hover:bg-stone-700 rounded-md text-sm transition-colors"
+            onclick="resetSimulation()">
+            Reset
+          </button>
+        </div>
+        <div id="status-display" class="bg-primary-800 p-4 rounded-lg font-mono text-sm max-h-32 overflow-y-auto">
+          <div class="text-green-400">
+            >>> System Ready. Click "Load Images" to start...
           </div>
         </div>
       </div>
