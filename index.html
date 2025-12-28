@@ -114,59 +114,144 @@
       <h2 class="text-xl font-semibold text-primary-700 mb-4 pb-2 border-b-2 border-accent-500">
         Kiến Trúc DATR
       </h2>
-      <div class="space-y-3">
-        <div class="flex items-start gap-4 p-4 bg-stone-50 rounded-lg border-l-4 border-primary-600">
-          <span class="text-xl">1.</span>
-          <div>
-            <strong>Đầu vào</strong>
-            <p class="text-sm text-primary-500">
-              Cặp ảnh từ domain nguồn và domain đích
-            </p>
+      <div class="space-y-4">
+        <!-- Bước 1: Đầu vào -->
+        <div class="p-4 bg-stone-50 rounded-lg border-l-4 border-green-500">
+          <div class="flex items-start gap-4">
+            <span
+              class="w-8 h-8 bg-green-500 text-white rounded-full flex items-center justify-center text-sm font-bold">1</span>
+            <div class="flex-1">
+              <strong class="text-green-700">Đầu vào (Input Images)</strong>
+              <p class="text-sm text-primary-500 mt-1">Cặp ảnh từ domain nguồn và domain đích</p>
+              <div class="grid md:grid-cols-2 gap-3 mt-3">
+                <div class="bg-blue-50 p-3 rounded border border-blue-200">
+                  <span class="text-xs font-semibold text-blue-600">INPUT:</span>
+                  <p class="text-sm font-mono">Image: [3, 800, 1333] (RGB)</p>
+                </div>
+                <div class="bg-green-50 p-3 rounded border border-green-200">
+                  <span class="text-xs font-semibold text-green-600">OUTPUT:</span>
+                  <p class="text-sm font-mono">Tensor: [3, H, W] normalized</p>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
-        <div class="flex items-start gap-4 p-4 bg-stone-50 rounded-lg border-l-4 border-primary-600">
-          <span class="text-xl">2.</span>
-          <div>
-            <strong>Backbone (ResNet-50)</strong>
-            <p class="text-sm text-primary-500">
-              Trích xuất đặc trưng cơ bản từ ảnh
-            </p>
+
+        <!-- Bước 2: Backbone -->
+        <div class="p-4 bg-stone-50 rounded-lg border-l-4 border-blue-500">
+          <div class="flex items-start gap-4">
+            <span
+              class="w-8 h-8 bg-blue-500 text-white rounded-full flex items-center justify-center text-sm font-bold">2</span>
+            <div class="flex-1">
+              <strong class="text-blue-700">Backbone (ResNet-50)</strong>
+              <p class="text-sm text-primary-500 mt-1">Trích xuất đặc trưng cơ bản từ ảnh</p>
+              <div class="grid md:grid-cols-2 gap-3 mt-3">
+                <div class="bg-blue-50 p-3 rounded border border-blue-200">
+                  <span class="text-xs font-semibold text-blue-600">INPUT:</span>
+                  <p class="text-sm font-mono">Image: [3, 800, 1333]</p>
+                </div>
+                <div class="bg-green-50 p-3 rounded border border-green-200">
+                  <span class="text-xs font-semibold text-green-600">OUTPUT:</span>
+                  <p class="text-sm font-mono">Features: [2048, 25, 42]</p>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
-        <div class="flex items-start gap-4 p-4 bg-stone-50 rounded-lg border-l-4 border-primary-600">
-          <span class="text-xl">3.</span>
-          <div>
-            <strong>Transformer Encoder</strong>
-            <p class="text-sm text-primary-500">
-              Tăng cường đặc trưng bằng self-attention
-            </p>
+
+        <!-- Bước 3: Transformer Encoder -->
+        <div class="p-4 bg-stone-50 rounded-lg border-l-4 border-orange-500">
+          <div class="flex items-start gap-4">
+            <span
+              class="w-8 h-8 bg-orange-500 text-white rounded-full flex items-center justify-center text-sm font-bold">3</span>
+            <div class="flex-1">
+              <strong class="text-orange-700">Transformer Encoder</strong>
+              <p class="text-sm text-primary-500 mt-1">Tăng cường đặc trưng bằng self-attention (6 layers)</p>
+              <div class="grid md:grid-cols-2 gap-3 mt-3">
+                <div class="bg-blue-50 p-3 rounded border border-blue-200">
+                  <span class="text-xs font-semibold text-blue-600">INPUT:</span>
+                  <p class="text-sm font-mono">Features: [2048, 25, 42]</p>
+                  <p class="text-xs text-primary-400">→ Flatten: [1050, 256]</p>
+                </div>
+                <div class="bg-green-50 p-3 rounded border border-green-200">
+                  <span class="text-xs font-semibold text-green-600">OUTPUT:</span>
+                  <p class="text-sm font-mono">Memory: [1050, 256]</p>
+                  <p class="text-xs text-primary-400">Enhanced features</p>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
-        <div class="flex items-start gap-4 p-4 bg-stone-50 rounded-lg border-l-4 border-primary-600">
-          <span class="text-xl">4.</span>
-          <div>
-            <strong>Transformer Decoder + Object Queries</strong>
-            <p class="text-sm text-primary-500">
-              Định vị vật thể qua cross-attention
-            </p>
+
+        <!-- Bước 4: Transformer Decoder -->
+        <div class="p-4 bg-stone-50 rounded-lg border-l-4 border-pink-500">
+          <div class="flex items-start gap-4">
+            <span
+              class="w-8 h-8 bg-pink-500 text-white rounded-full flex items-center justify-center text-sm font-bold">4</span>
+            <div class="flex-1">
+              <strong class="text-pink-700">Transformer Decoder + Object Queries</strong>
+              <p class="text-sm text-primary-500 mt-1">Định vị vật thể qua cross-attention</p>
+              <div class="grid md:grid-cols-2 gap-3 mt-3">
+                <div class="bg-blue-50 p-3 rounded border border-blue-200">
+                  <span class="text-xs font-semibold text-blue-600">INPUT:</span>
+                  <p class="text-sm font-mono">Memory: [1050, 256]</p>
+                  <p class="text-sm font-mono">Queries: [300, 256]</p>
+                </div>
+                <div class="bg-green-50 p-3 rounded border border-green-200">
+                  <span class="text-xs font-semibold text-green-600">OUTPUT:</span>
+                  <p class="text-sm font-mono">Embeddings: [300, 256]</p>
+                  <p class="text-xs text-primary-400">Per-object features</p>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
-        <div class="flex items-start gap-4 p-4 bg-purple-50 rounded-lg border-l-4 border-purple-500">
-          <span class="text-xl">5.</span>
-          <div>
-            <strong class="text-purple-700">CPA Module</strong>
-            <p class="text-sm text-primary-500">
-              Căn chỉnh prototypes theo từng class
-            </p>
+
+        <!-- Bước 5: CPA Module -->
+        <div class="p-4 bg-purple-50 rounded-lg border-l-4 border-purple-500">
+          <div class="flex items-start gap-4">
+            <span
+              class="w-8 h-8 bg-purple-500 text-white rounded-full flex items-center justify-center text-sm font-bold">5</span>
+            <div class="flex-1">
+              <strong class="text-purple-700">CPA Module (Class-wise Prototype Alignment)</strong>
+              <p class="text-sm text-primary-500 mt-1">Căn chỉnh prototypes theo từng class</p>
+              <div class="grid md:grid-cols-2 gap-3 mt-3">
+                <div class="bg-blue-50 p-3 rounded border border-blue-200">
+                  <span class="text-xs font-semibold text-blue-600">INPUT:</span>
+                  <p class="text-sm font-mono">Src_Proto: [C, 256]</p>
+                  <p class="text-sm font-mono">Tgt_Proto: [C, 256]</p>
+                </div>
+                <div class="bg-green-50 p-3 rounded border border-green-200">
+                  <span class="text-xs font-semibold text-green-600">OUTPUT:</span>
+                  <p class="text-sm font-mono">L_adv: scalar</p>
+                  <p class="text-xs text-primary-400">Adversarial loss</p>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
-        <div class="flex items-start gap-4 p-4 bg-cyan-50 rounded-lg border-l-4 border-cyan-500">
-          <span class="text-xl">6.</span>
-          <div>
-            <strong class="text-cyan-700">DAS Scheme</strong>
-            <p class="text-sm text-primary-500">
-              Contrastive learning trên toàn dataset
-            </p>
+
+        <!-- Bước 6: DAS Scheme -->
+        <div class="p-4 bg-cyan-50 rounded-lg border-l-4 border-cyan-500">
+          <div class="flex items-start gap-4">
+            <span
+              class="w-8 h-8 bg-cyan-500 text-white rounded-full flex items-center justify-center text-sm font-bold">6</span>
+            <div class="flex-1">
+              <strong class="text-cyan-700">DAS Scheme (Dataset-level Alignment)</strong>
+              <p class="text-sm text-primary-500 mt-1">Contrastive learning trên toàn dataset</p>
+              <div class="grid md:grid-cols-2 gap-3 mt-3">
+                <div class="bg-blue-50 p-3 rounded border border-blue-200">
+                  <span class="text-xs font-semibold text-blue-600">INPUT:</span>
+                  <p class="text-sm font-mono">Memory Bank: [K, 256]</p>
+                  <p class="text-sm font-mono">Current Proto: [C, 256]</p>
+                </div>
+                <div class="bg-green-50 p-3 rounded border border-green-200">
+                  <span class="text-xs font-semibold text-green-600">OUTPUT:</span>
+                  <p class="text-sm font-mono">L_contrast: scalar</p>
+                  <p class="text-xs text-primary-400">Contrastive loss</p>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -2726,6 +2811,19 @@ optimizer.step()
               </div>
               <div class="text-green-700 font-bold mt-3 text-xl" id="easy-step1-result">= Đang tính...</div>
             </div>
+            <!-- INPUT/OUTPUT Summary -->
+            <div class="grid md:grid-cols-2 gap-3 mt-4 pt-4 border-t">
+              <div class="bg-blue-50 p-3 rounded border border-blue-200">
+                <span class="text-xs font-semibold text-blue-600">📥 INPUT:</span>
+                <p class="text-sm font-mono mt-1">Raw Images (RGB)</p>
+                <p class="text-xs text-primary-500">Source + Target: 2 images</p>
+              </div>
+              <div class="bg-green-50 p-3 rounded border border-green-200">
+                <span class="text-xs font-semibold text-green-600">📤 OUTPUT:</span>
+                <p class="text-sm font-mono mt-1">Tensor: [2, 3, 800, 1333]</p>
+                <p class="text-xs text-primary-500">Normalized float32</p>
+              </div>
+            </div>
           </div>
         </div>`;
     }
@@ -2765,6 +2863,19 @@ optimizer.step()
                 </div>
               </div>
             </div>
+            <!-- INPUT/OUTPUT Summary -->
+            <div class="grid md:grid-cols-2 gap-3 mt-4 pt-4 border-t">
+              <div class="bg-blue-50 p-3 rounded border border-blue-200">
+                <span class="text-xs font-semibold text-blue-600">📥 INPUT:</span>
+                <p class="text-sm font-mono mt-1">Image: [2, 3, 800, 1333]</p>
+                <p class="text-xs text-primary-500">RGB normalized tensor</p>
+              </div>
+              <div class="bg-green-50 p-3 rounded border border-green-200">
+                <span class="text-xs font-semibold text-green-600">📤 OUTPUT:</span>
+                <p class="text-sm font-mono mt-1">Features: [2, 2048, 25, 42]</p>
+                <p class="text-xs text-primary-500">2,150,400 feature values</p>
+              </div>
+            </div>
           </div>
         </div>`;
     }
@@ -2798,6 +2909,19 @@ optimizer.step()
                 </div>
               </div>
             </div>
+            <!-- INPUT/OUTPUT Summary -->
+            <div class="grid md:grid-cols-2 gap-3 mt-4 pt-4 border-t">
+              <div class="bg-blue-50 p-3 rounded border border-blue-200">
+                <span class="text-xs font-semibold text-blue-600">📥 INPUT:</span>
+                <p class="text-sm font-mono mt-1">Memory: [1050, 256]</p>
+                <p class="text-sm font-mono">Queries: [300, 256]</p>
+              </div>
+              <div class="bg-green-50 p-3 rounded border border-green-200">
+                <span class="text-xs font-semibold text-green-600">📤 OUTPUT:</span>
+                <p class="text-sm font-mono mt-1">Embeddings: [300, 256]</p>
+                <p class="text-xs text-primary-500">Per-object features</p>
+              </div>
+            </div>
           </div>
         </div>`;
     }
@@ -2822,6 +2946,19 @@ optimizer.step()
                   <div class="mt-1">= (Query_12 + Query_45 + ...) / <span id="easy-step4-n2" class="bg-yellow-200 px-2 py-1 rounded">?</span></div>
                   <div class="text-purple-600 mt-1">= Vector [<span id="easy-step4-v2">...</span>]</div>
                 </div>
+              </div>
+            </div>
+            <!-- INPUT/OUTPUT Summary -->
+            <div class="grid md:grid-cols-2 gap-3 mt-4 pt-4 border-t">
+              <div class="bg-blue-50 p-3 rounded border border-blue-200">
+                <span class="text-xs font-semibold text-blue-600">📥 INPUT:</span>
+                <p class="text-sm font-mono mt-1">Embeddings: [300, 256]</p>
+                <p class="text-xs text-primary-500">Object query features</p>
+              </div>
+              <div class="bg-green-50 p-3 rounded border border-green-200">
+                <span class="text-xs font-semibold text-green-600">📤 OUTPUT:</span>
+                <p class="text-sm font-mono mt-1">Prototypes: [C, 256]</p>
+                <p class="text-xs text-primary-500">C = number of classes</p>
               </div>
             </div>
           </div>
@@ -2849,6 +2986,19 @@ optimizer.step()
                   </div>
                   <div class="text-cyan-700 font-bold mt-2">= <span id="easy-step5-loss">?</span></div>
                 </div>
+              </div>
+            </div>
+            <!-- INPUT/OUTPUT Summary -->
+            <div class="grid md:grid-cols-2 gap-3 mt-4 pt-4 border-t">
+              <div class="bg-blue-50 p-3 rounded border border-blue-200">
+                <span class="text-xs font-semibold text-blue-600">📥 INPUT:</span>
+                <p class="text-sm font-mono mt-1">Src_Proto: [C, 256]</p>
+                <p class="text-sm font-mono">Tgt_Proto: [C, 256]</p>
+              </div>
+              <div class="bg-green-50 p-3 rounded border border-green-200">
+                <span class="text-xs font-semibold text-green-600">📤 OUTPUT:</span>
+                <p class="text-sm font-mono mt-1">L_adv: scalar</p>
+                <p class="text-xs text-primary-500">Adversarial loss value</p>
               </div>
             </div>
           </div>
@@ -2880,6 +3030,19 @@ optimizer.step()
               <div class="bg-amber-50 p-4 rounded-lg border border-amber-200 text-center">
                 <p class="font-semibold text-amber-600">Teacher</p>
                 <p class="text-sm mt-2">Updated: <span id="easy-step6-tweight" class="font-mono font-bold">?</span></p>
+              </div>
+            </div>
+            <!-- INPUT/OUTPUT Summary -->
+            <div class="grid md:grid-cols-2 gap-3 mt-4 pt-4 border-t">
+              <div class="bg-blue-50 p-3 rounded border border-blue-200">
+                <span class="text-xs font-semibold text-blue-600">📥 INPUT:</span>
+                <p class="text-sm font-mono mt-1">Student θ: [params]</p>
+                <p class="text-sm font-mono">Teacher θ: [params]</p>
+              </div>
+              <div class="bg-green-50 p-3 rounded border border-green-200">
+                <span class="text-xs font-semibold text-green-600">📤 OUTPUT:</span>
+                <p class="text-sm font-mono mt-1">Updated Teacher θ</p>
+                <p class="text-xs text-primary-500">EMA smoothed weights</p>
               </div>
             </div>
           </div>
@@ -2914,6 +3077,19 @@ optimizer.step()
           <div class="bg-green-50 border-l-4 border-green-500 p-4 rounded-r">
             <p class="font-semibold text-green-700">Kết luận:</p>
             <p class="text-sm text-green-700 mt-1">DATR giúp mô hình cải thiện từ <strong>35.6%</strong> → <strong>52.8%</strong> (+17.2% mAP!)</p>
+          </div>
+          <!-- INPUT/OUTPUT Summary -->
+          <div class="grid md:grid-cols-2 gap-3 mt-4 pt-4 border-t">
+            <div class="bg-blue-50 p-3 rounded border border-blue-200">
+              <span class="text-xs font-semibold text-blue-600">📥 INPUT:</span>
+              <p class="text-sm font-mono mt-1">L_det + L_adv + L_con</p>
+              <p class="text-xs text-primary-500">Combined losses</p>
+            </div>
+            <div class="bg-green-50 p-3 rounded border border-green-200">
+              <span class="text-xs font-semibold text-green-600">📤 OUTPUT:</span>
+              <p class="text-sm font-mono mt-1">mAP: 52.8%</p>
+              <p class="text-xs text-primary-500">+17.2% improvement</p>
+            </div>
           </div>
         </div>`;
     }
